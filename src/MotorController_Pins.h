@@ -1,8 +1,8 @@
 #pragma once
 
 #define MOT0_EN 1
-#define MOT0_PWM1 0
-#define MOT0_PWM2 2
+#define MOT0_PWM1 2
+#define MOT0_PWM2 0
 
 #define MOT1_EN 4
 #define MOT1_PWM1 5
