@@ -31,6 +31,19 @@ void Motor::drive_motor(int pwm_duty_cycle){
     }
 }
 
+void Motor::drive_motor_setpoint(){
+    int pwm_duty_cycle = _setpoint;
+    if(pwm_duty_cycle < 0){
+        analogWrite(_PWM2,abs(pwm_duty_cycle));
+        analogWrite(_PWM1,0);
+    }
+
+    else{
+        analogWrite(_PWM1,pwm_duty_cycle);
+        analogWrite(_PWM2,0); 
+    }
+}
+
 int Motor::read_enc(){
     _enc_count = encoder.read();
     return _enc_count;
@@ -68,6 +81,8 @@ void Motor::pid_position(){
   _currentTime = millis();
   _elapsedTime= (_currentTime- _previousTime)/1000;
   _error = float(_setpoint - (this->read_enc()));
+  Serial.print("error: ");
+  Serial.println(_error);
   float output = 0;
 
   if(abs(_error) > 0){
