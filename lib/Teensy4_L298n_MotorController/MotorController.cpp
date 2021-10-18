@@ -7,9 +7,16 @@ Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB) : encode
     _PWM1 = PWM1;
     _PWM2 = PWM2;
     _SENSE = SENSE;
+
+    //default PID for testing
+
+    _kP = 1.0;
+    _kI = 0.0;
+    _kD = 0.0;
    
 
     _enc_count = 0;
+    _previousTimeUpdate = 0;
 }
 
 void Motor::init_motor(){
@@ -77,37 +84,57 @@ void Motor::setPID_vars(float kP, float kI, float kD){
     _kD = kD;
 }
 
-void Motor::pid_position(){
+std_msgs::Float32 Motor::pid_position(int setpoint){
   _currentTime = millis();
-  _elapsedTime= (_currentTime- _previousTime)/1000;
-  _error = float(_setpoint - (this->read_enc()));
-  Serial.print("error: ");
-  Serial.println(_error);
-  float output = 0;
+  _elapsedTime = (_currentTime - _previousTime)/1000.0;
+  _error = float(setpoint - read_enc());
 
-  if(abs(_error) > 0){
-    
+
+  std_msgs::Float32  error_msg;
+//   error_msg.data = abs(_error);
+
+
+  float output = 0.0;
+
+  if(abs(_error) > 0.0){
     _cumError += _error*_elapsedTime;
     _rateError = (_error-_lastError)/_elapsedTime;
 
-    // float output = kP*error + kI*cumError + kD*rateError;
     output = _kP*_error + _kI*_cumError + _kD*_rateError;
+
+    error_msg.data = output;
     
-    if(output > 255) output = 255;
+    if(output > 255.0) output = 255.0;
 
-    this->drive_motor(output); 
+    drive_motor((int)output); 
 
-    _previousTime = _currentTime;   
+    _previousTime = _currentTime;
+    _lastError = _error;
   }
 
   else{
-    this->drive_motor(output);
-  } 
+    drive_motor(0);
+  }
 
-  Serial.print("Output: ");
-  Serial.println(output);
-  Serial.println();
+return error_msg;
 
+}
+
+
+void Motor::update_PID(int goal){
+    _currentTime = millis();
+
+    if(_currentTimeUpdate - _previousTimeUpdate >= _updateTime_PID){
+        pid_position(goal);
+        _previousTimeUpdate = millis();
+    }
+
+    else;
+
+}
+
+void Motor::setPIDUpdateRate(float millis){
+    _updateTime_PID = millis;
 }
 
 

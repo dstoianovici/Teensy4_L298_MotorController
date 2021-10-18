@@ -21,6 +21,9 @@
 // #include <Arduino.h>
 #include <MotorController_Pins.h>
 #include <MotorController.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Float32.h>
+#include <std_msgs/String.h>
 
 #define GEAR_RATIO 131
 #define COUNT_PER_ROT_ENC 16
@@ -29,105 +32,64 @@
 Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
 
 
+
+
+
 // MotorController motor_controller;
 
 // static const int LED_PIN = LED_BUILTIN;
 
-TaskHandle_t get_setpoint_handle;
-TaskHandle_t motor_controller_handle;
 
+volatile int goal_pos;
 
-void test_task(void *param){
-  while(1){
-    Serial.println("test");
-    vTaskDelay(200/portTICK_PERIOD_MS);
- }
+ros::NodeHandle nh;
+std_msgs::Int32 pos_fb;
+std_msgs::Float32 error_msg;
+
+void set_position_goal(const std_msgs::Int32& goal_msg){
+  goal_pos = goal_msg.data;
+  // mot0.setSetpoint((int)goal_msg.data);
 }
 
-void get_setpoint(void *param){
-  while(1){
-    // vTaskSuspend(motor_controller_handle);
-    // for(int i = 0; i < 10; i++){
-    //   mot0._setpoint = (i*25);
-    //   vTaskDelay(1000/portTICK_PERIOD_MS);
-    //   Serial.println(mot0.getSetpoint());
-    // }
 
-    if(Serial.available() > 0){
-      mot0.setSetpoint(Serial.parseInt());
-      vTaskDelay(150/portTICK_PERIOD_MS);
-    }
-
-    else; // vTaskDelay(150/portTICK_PERIOD_MS);
-    // vTaskResume(motor_controller_handle);
-
-  }
-
-}
-
-void motor_controller_task(void *param){
-  while(1){
-    // Serial.println("motor task");
-    // mot0.pid_position();
-
-    vTaskSuspend(get_setpoint_handle);
-
-    mot0.drive_motor_setpoint();
-
-    // Serial.println("hey fuck you");
-
-    // vTaskDelay(10/portTICK_PERIOD_MS);
-    // Serial.println(mot0.read_enc());
-    
-    vTaskDelay(100/portTICK_PERIOD_MS);
-
-    vTaskResume(get_setpoint_handle);
- }
-}
+ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &set_position_goal);
+ros::Publisher enc_feedback_pub("enc_reading", &pos_fb);
+ros::Publisher error_string_pub("motor_output", &error_msg);
 
 void setup() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
+
+
+
+  nh.getHardware()->setBaud(115200);
+  nh.initNode();
+  nh.subscribe(position_goal_sub);
+  nh.advertise(enc_feedback_pub);
+  nh.advertise(error_string_pub);
+
+
 
   mot0.init_motor();
   mot0.enable_motor();
-  // mot0.setPID_vars(1.0,0.0,0.0);
+
+  mot0.setPIDUpdateRate(10);
 
   
-  //Task to run forever
-  xTaskCreate( //create task
-    motor_controller_task, //Function to be called
-    "motor_controller_task", //Task Name
-    1000, //Stack size (Words in freeRTOS)
-    NULL, //Param to pass to function
-    1, // Task Priority
-    &motor_controller_handle   //Task Handle
-  );
-
-
-xTaskCreate( //create task
-  get_setpoint, //Function to be called
-  "setpoint_task", //Task Name
-  1000, //Stack size (Words in freeRTOS)
-  NULL, //Param to pass to function
-  2, // Task Priority
-  &get_setpoint_handle //Task Handle
-  );
-
-
-// xTaskCreate( //create task
-//   test_task, //Function to be called
-//   "test_task", //Task Name
-//   500, //Stack size (Words (bytes) in freeRTOS)
-//   NULL, //Param to pass to function
-//   0, // Task Priority
-//   NULL //Task Handle
-// );
-
-
-  vTaskStartScheduler();
-
 }
 
 void loop() {
+
+  nh.spinOnce();
+
+  
+  // mot0.drive_motor(goal_pos);
+  error_msg =  mot0.pid_position(goal_pos);
+
+
+  pos_fb.data = mot0.read_enc();
+  enc_feedback_pub.publish(&pos_fb);
+  error_string_pub.publish(&error_msg);
+
+  delay(50);
 
 }

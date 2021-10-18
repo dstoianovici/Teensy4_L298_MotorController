@@ -5,7 +5,10 @@
     #include <Arduino.h>
     #include <Encoder.h>
     #include <ros.h>
-    #include <FreeRTOS_TEENSY4.h>
+    #include <std_msgs/String.h>
+    #include <std_msgs/Int32.h>
+    #include <std_msgs/Float32.h>
+    // #include <FreeRTOS_TEENSY4.h>
 
 
 
@@ -23,9 +26,14 @@
             void setSetpoint(int setpoint);
             int getSetpoint();
             void getSetpoint_ROS();
-            void pid_position();
+            std_msgs::Float32 pid_position(int setpoint);
 
             void setPID_vars(float kP, float kI, float kD);
+
+            void update_PID(int goal);
+            void setPIDUpdateRate(float millis);
+
+
 
             int _enc_count;
 
@@ -38,10 +46,10 @@
 
             Encoder encoder;
 
-            
-        
 
         private:
+
+            //Motor Vars
             int _EN;
             int _PWM1;
             int _PWM2;
@@ -50,9 +58,11 @@
             int _encB;
 
             //PID Vars
-            float volatile _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
+            volatile float  _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
+            volatile float  _updateTime_PID,_currentTimeUpdate,_previousTimeUpdate;
             float _kP, _kI, _kD;
 
+            
     };
 
     class MotorController{
