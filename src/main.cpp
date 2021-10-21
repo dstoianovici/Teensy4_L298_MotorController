@@ -73,7 +73,7 @@ void setup() {
   mot0.enable_motor();
 
   mot0.setPIDUpdateRate(10);
-  mot0.setPID_vars(1.5, 0.75, 0.05);
+  mot0.setPID_vars(0.05, 0.25, -0.1);
 
   
 }

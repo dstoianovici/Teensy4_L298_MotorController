@@ -139,7 +139,7 @@ float Motor::pid_velocity(float setpoint){
 
   if(abs(_error) > 0.0){
     _cumError += _error*_elapsedTime;
-    _rateError = (_error-_lastError)/(_elapsedTime/1000.0);
+    _rateError = (_error-_lastError);
 
     output = _kP*_error + _kI*_cumError + _kD*_rateError;
     
