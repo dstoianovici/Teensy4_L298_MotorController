@@ -2,11 +2,13 @@
 
 
 //Explicit Constructor
-Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB) : encoder(encA,encB){
+Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, int ticks_per_rot) : encoder(encA,encB){
     _EN = EN;
     _PWM1 = PWM1;
     _PWM2 = PWM2;
     _SENSE = SENSE;
+
+    _ticks_per_rot = ticks_per_rot;
 
     //default PID for testing
 
@@ -118,6 +120,18 @@ std_msgs::Float32 Motor::pid_position(int setpoint){
 
 return error_msg;
 
+}
+
+float Motor::getVelocity(){
+    _currentTime_vel = millis();
+    _encoderCurrent_vel = read_enc();
+    float deltaTime = (_currentTime_vel - _previousTime_vel)/MILLIS_PER_MIN;
+    float deltaEncoder = (_encoderCurrent_vel - _encoderPast_vel)/_ticks_per_rot;
+
+    _encoderPast_vel = _encoderCurrent_vel;
+    _previousTime_vel = _currentTime_vel;
+
+    return deltaEncoder/deltaTime; //RPM
 }
 
 
