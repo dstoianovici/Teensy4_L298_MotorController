@@ -73,6 +73,7 @@ void setup() {
   mot0.enable_motor();
 
   mot0.setPIDUpdateRate(10);
+  mot0.setPID_vars(1.5, 0.75, 0.05);
 
   
 }
@@ -82,10 +83,9 @@ void loop() {
   nh.spinOnce();
 
   
-  mot0.drive_motor(goal_pos);
+  // mot0.drive_motor(goal_pos);
   // error_msg =  mot0.pid_position(goal_pos);
-  velocity_msg.data = mot0.getVelocity();
-
+  velocity_msg.data = mot0.pid_velocity(goal_pos);
 
 
   pos_fb.data = mot0.read_enc();

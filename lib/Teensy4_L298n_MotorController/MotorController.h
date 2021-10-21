@@ -32,7 +32,7 @@
 
 
             float getVelocity();
-            void pid_velocity(int setpoint);
+            float pid_velocity(float setpoint);
 
             void setPID_vars(float kP, float kI, float kD);
 
@@ -66,11 +66,17 @@
 
             //PID Vars
             volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
-            volatile float _updateTime_PID,_currentTimeUpdate,_previousTimeUpdate;
+            float _kP, _kI, _kD;
+
+
+            //Velocity calc Vars
             volatile float _currentTime_vel, _previousTime_vel;
             volatile int _encoderPast_vel, _encoderCurrent_vel;  
 
-            float _kP, _kI, _kD;
+
+            //Vars for PID update Rate
+            volatile float _updateTime_PID,_currentTimeUpdate,_previousTimeUpdate;
+
             
 
             

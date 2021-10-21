@@ -8,14 +8,7 @@ Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ti
     _PWM2 = PWM2;
     _SENSE = SENSE;
 
-    _ticks_per_rot = ticks_per_rot;
-
-    //default PID for testing
-
-    _kP = 1.0;
-    _kI = 0.0;
-    _kD = 0.0;
-   
+    _ticks_per_rot = ticks_per_rot;   
 
     _enc_count = 0;
     _previousTimeUpdate = 0;
@@ -93,8 +86,6 @@ std_msgs::Float32 Motor::pid_position(int setpoint){
 
 
   std_msgs::Float32  error_msg;
-//   error_msg.data = abs(_error);
-
 
   float output = 0.0;
 
@@ -119,7 +110,6 @@ std_msgs::Float32 Motor::pid_position(int setpoint){
   }
 
 return error_msg;
-
 }
 
 float Motor::getVelocity(){
@@ -138,8 +128,34 @@ float Motor::getVelocity(){
     return deltaEncoder/deltaTime; //RPM
 }
 
-void Motor::pid_velocity(int setpoint){
+float Motor::pid_velocity(float setpoint){
+  _currentTime = millis();
+  float vel = getVelocity();
+  _elapsedTime = (_currentTime - _previousTime)/1000.0;
+  _error = setpoint - vel;
+
+
+  float output = 0.0;
+
+  if(abs(_error) > 0.0){
+    _cumError += _error*_elapsedTime;
+    _rateError = (_error-_lastError)/(_elapsedTime/1000.0);
+
+    output = _kP*_error + _kI*_cumError + _kD*_rateError;
     
+    if(output > 255.0) output = 255.0;
+
+    drive_motor((int)output); 
+
+    _previousTime = _currentTime;
+    _lastError = _error;
+  }
+
+  else{
+    drive_motor(0);
+  }
+
+  return vel;
 }
 
 void Motor::update_PID(int goal){
