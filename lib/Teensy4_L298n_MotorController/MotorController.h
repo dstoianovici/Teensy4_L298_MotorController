@@ -10,13 +10,13 @@
     #include <std_msgs/Float32.h>
     // #include <FreeRTOS_TEENSY4.h>
 
-    #define MILLIS_PER_MIN 1000 * 60 //1000 millis/sec * 60 sec/min
+    #define MILLIS_PER_MIN 60000.0 //1000 millis/sec * 60 sec/min
 
 
 
     class Motor{
         public:
-            Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, int ticks_per_rotation);
+            Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rotation);
 
             void init_motor();
             void drive_motor(int pwm_duty_cycle);
@@ -29,7 +29,10 @@
             int getSetpoint();
             void getSetpoint_ROS();
             std_msgs::Float32 pid_position(int setpoint);
+
+
             float getVelocity();
+            void pid_velocity(int setpoint);
 
             void setPID_vars(float kP, float kI, float kD);
 
@@ -59,7 +62,7 @@
             int _SENSE;
             int _encA;
             int _encB;
-            int _ticks_per_rot;
+            float  _ticks_per_rot;
 
             //PID Vars
             volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;

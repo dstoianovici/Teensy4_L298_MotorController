@@ -2,7 +2,7 @@
 
 
 //Explicit Constructor
-Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, int ticks_per_rot) : encoder(encA,encB){
+Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rot) : encoder(encA,encB){
     _EN = EN;
     _PWM1 = PWM1;
     _PWM2 = PWM2;
@@ -125,8 +125,12 @@ return error_msg;
 float Motor::getVelocity(){
     _currentTime_vel = millis();
     _encoderCurrent_vel = read_enc();
+
     float deltaTime = (_currentTime_vel - _previousTime_vel)/MILLIS_PER_MIN;
     float deltaEncoder = (_encoderCurrent_vel - _encoderPast_vel)/_ticks_per_rot;
+
+    // float deltaTime = (_currentTime_vel - _previousTime_vel);
+    // float deltaEncoder = (_encoderCurrent_vel - _encoderPast_vel);
 
     _encoderPast_vel = _encoderCurrent_vel;
     _previousTime_vel = _currentTime_vel;
@@ -134,6 +138,9 @@ float Motor::getVelocity(){
     return deltaEncoder/deltaTime; //RPM
 }
 
+void Motor::pid_velocity(int setpoint){
+    
+}
 
 void Motor::update_PID(int goal){
     _currentTime = millis();
