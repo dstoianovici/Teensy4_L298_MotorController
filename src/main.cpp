@@ -25,6 +25,8 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
 
+#define SERIAL
+
 #define GEAR_RATIO 131
 #define COUNT_PER_ROT_ENC 16
 #define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
@@ -33,6 +35,9 @@ Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B);
 
 
 
+// #ifdef ROS
+   
+// #ifdef PYTHON
 
 
 // MotorController motor_controller;
@@ -42,6 +47,7 @@ Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B);
 
 volatile int goal_pos;
 
+#ifdef ROS
 ros::NodeHandle nh;
 std_msgs::Int32 pos_fb;
 std_msgs::Float32 error_msg;
@@ -51,22 +57,34 @@ void set_position_goal(const std_msgs::Int32& goal_msg){
   // mot0.setSetpoint((int)goal_msg.data);
 }
 
-
 ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &set_position_goal);
 ros::Publisher enc_feedback_pub("enc_reading", &pos_fb);
 ros::Publisher error_string_pub("motor_output", &error_msg);
+#endif
+
+#ifdef SERIAL
+
+#endif
+
 
 void setup() {
-  // Serial.begin(115200);
+
+  #ifdef SERIAL
+
+    Serial.begin(115200);
+    
+  #endif
 
 
+  #ifdef ROS
 
-  nh.getHardware()->setBaud(115200);
-  nh.initNode();
-  nh.subscribe(position_goal_sub);
-  nh.advertise(enc_feedback_pub);
-  nh.advertise(error_string_pub);
-
+    nh.getHardware()->setBaud(115200);
+    nh.initNode();
+    nh.subscribe(position_goal_sub);
+    nh.advertise(enc_feedback_pub);
+    nh.advertise(error_string_pub);
+  
+  #endif
 
 
   mot0.init_motor();
@@ -79,16 +97,18 @@ void setup() {
 
 void loop() {
 
-  nh.spinOnce();
 
   
-  // mot0.drive_motor(goal_pos);
-  error_msg =  mot0.pid_position(goal_pos);
+  // // mot0.drive_motor(goal_pos);
+  // error_msg =  mot0.pid_position(goal_pos);
 
 
-  pos_fb.data = mot0.read_enc();
-  enc_feedback_pub.publish(&pos_fb);
-  error_string_pub.publish(&error_msg);
+  #ifdef ROS
+    nh.spinOnce();
+    pos_fb.data = mot0.read_enc();
+    enc_feedback_pub.publish(&pos_fb);
+    error_string_pub.publish(&error_msg);
+  #endif
 
   delay(50);
 
