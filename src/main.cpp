@@ -7,13 +7,16 @@
  * 
 
  REQUIREMENTS
- - Use FreeRTOS
+ - Use update functiions to separate tasks
  - Schedule Task for each of following functions
     - Position Measurement
     - Velocity Calculation
+    - Serial Comms
+    - ROS Comms (Custom Message)
+
+    --------Future Features----------
     - Acceleration Calculation
     - Current Measurement and Calculation 
-    - Recieve Custom ROS Message to 
 
 **/
 
@@ -28,6 +31,9 @@
 #define GEAR_RATIO 131.0
 #define COUNT_PER_ROT_ENC 16.0
 #define COUNT_PER_ROT GEAR_RATIO * COUNT_PER_ROT_ENC
+
+Communicator::Comm_Data comm_msg;
+
 
 Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT);  
 
@@ -73,7 +79,9 @@ void setup() {
   mot0.enable_motor();
 
   mot0.setPIDUpdateRate(10);
-  mot0.setPID_vars(0.05, 0.25, -0.1);
+  mot0.setPID_vars(2.0, 0.5, 0.5);
+
+  
 
   
 }

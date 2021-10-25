@@ -189,3 +189,10 @@ void MotorController::run_motor(int motor, int speed){
     motor_array[motor]->drive_motor(speed);
 }
 
+
+
+///////////////Communicator///////////////////////////
+Communicator::Communicator(char* port, int baudrate){
+    _port = port;
+    _baudrate = baudrate;
+}
