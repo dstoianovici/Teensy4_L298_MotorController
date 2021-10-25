@@ -192,7 +192,6 @@ void MotorController::run_motor(int motor, int speed){
 
 
 ///////////////Communicator///////////////////////////
-Communicator::Communicator(char* port, int baudrate){
-    _port = port;
+Communicator::Communicator(int baudrate){
     _baudrate = baudrate;
 }
