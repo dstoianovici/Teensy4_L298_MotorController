@@ -21,9 +21,9 @@
 // #include <Arduino.h>
 #include <MotorController_Pins.h>
 #include <MotorController.h>
-#include <std_msgs/Int32.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/String.h>
+// #include <std_msgs/Int32.h>
+// #include <std_msgs/Float32.h>
+// #include <std_msgs/String.h>
 
 #define SERIAL
 
@@ -31,7 +31,7 @@
 #define COUNT_PER_ROT_ENC 16
 #define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
 
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
+// Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
 
 
 
@@ -72,6 +72,9 @@ void setup() {
   #ifdef SERIAL
 
     Serial.begin(115200);
+    Serial.setTimeout(1);
+    // pinMode(13, OUTPUT);
+
     
   #endif
 
@@ -87,10 +90,10 @@ void setup() {
   #endif
 
 
-  mot0.init_motor();
-  mot0.enable_motor();
+  // mot0.init_motor();
+  // mot0.enable_motor();
 
-  mot0.setPIDUpdateRate(10);
+  // mot0.setPIDUpdateRate(10);
 
   
 }
@@ -109,6 +112,26 @@ void loop() {
     enc_feedback_pub.publish(&pos_fb);
     error_string_pub.publish(&error_msg);
   #endif
+
+  #ifdef SERIAL
+
+  // if(Serial.available() > 0){
+  //   int val = Serial.parseInt();
+
+  //   if(val%2 == 0) digitalWrite(13,HIGH);
+  //   else digitalWrite(13, LOW);
+  // }
+
+ int x;
+ while (!Serial.available());
+ x = Serial.readString().toInt();
+ Serial.print(x + 1);
+
+
+
+  #endif
+
+
 
   delay(50);
 
