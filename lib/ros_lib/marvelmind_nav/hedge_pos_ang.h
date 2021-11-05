@@ -16,15 +16,15 @@ namespace marvelmind_nav
       _address_type address;
       typedef int64_t _timestamp_ms_type;
       _timestamp_ms_type timestamp_ms;
-      typedef float _x_m_type;
+      typedef double _x_m_type;
       _x_m_type x_m;
-      typedef float _y_m_type;
+      typedef double _y_m_type;
       _y_m_type y_m;
-      typedef float _z_m_type;
+      typedef double _z_m_type;
       _z_m_type z_m;
       typedef uint8_t _flags_type;
       _flags_type flags;
-      typedef float _angle_type;
+      typedef double _angle_type;
       _angle_type angle;
 
     hedge_pos_ang():
@@ -57,12 +57,64 @@ namespace marvelmind_nav
       *(outbuffer + offset + 6) = (u_timestamp_ms.base >> (8 * 6)) & 0xFF;
       *(outbuffer + offset + 7) = (u_timestamp_ms.base >> (8 * 7)) & 0xFF;
       offset += sizeof(this->timestamp_ms);
-      offset += serializeAvrFloat64(outbuffer + offset, this->x_m);
-      offset += serializeAvrFloat64(outbuffer + offset, this->y_m);
-      offset += serializeAvrFloat64(outbuffer + offset, this->z_m);
+      union {
+        double real;
+        uint64_t base;
+      } u_x_m;
+      u_x_m.real = this->x_m;
+      *(outbuffer + offset + 0) = (u_x_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_x_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_x_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_x_m.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (u_x_m.base >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (u_x_m.base >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (u_x_m.base >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (u_x_m.base >> (8 * 7)) & 0xFF;
+      offset += sizeof(this->x_m);
+      union {
+        double real;
+        uint64_t base;
+      } u_y_m;
+      u_y_m.real = this->y_m;
+      *(outbuffer + offset + 0) = (u_y_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_y_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_y_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_y_m.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (u_y_m.base >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (u_y_m.base >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (u_y_m.base >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (u_y_m.base >> (8 * 7)) & 0xFF;
+      offset += sizeof(this->y_m);
+      union {
+        double real;
+        uint64_t base;
+      } u_z_m;
+      u_z_m.real = this->z_m;
+      *(outbuffer + offset + 0) = (u_z_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_z_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_z_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_z_m.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (u_z_m.base >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (u_z_m.base >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (u_z_m.base >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (u_z_m.base >> (8 * 7)) & 0xFF;
+      offset += sizeof(this->z_m);
       *(outbuffer + offset + 0) = (this->flags >> (8 * 0)) & 0xFF;
       offset += sizeof(this->flags);
-      offset += serializeAvrFloat64(outbuffer + offset, this->angle);
+      union {
+        double real;
+        uint64_t base;
+      } u_angle;
+      u_angle.real = this->angle;
+      *(outbuffer + offset + 0) = (u_angle.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_angle.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_angle.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_angle.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (u_angle.base >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (u_angle.base >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (u_angle.base >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (u_angle.base >> (8 * 7)) & 0xFF;
+      offset += sizeof(this->angle);
       return offset;
     }
 
@@ -86,12 +138,68 @@ namespace marvelmind_nav
       u_timestamp_ms.base |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
       this->timestamp_ms = u_timestamp_ms.real;
       offset += sizeof(this->timestamp_ms);
-      offset += deserializeAvrFloat64(inbuffer + offset, &(this->x_m));
-      offset += deserializeAvrFloat64(inbuffer + offset, &(this->y_m));
-      offset += deserializeAvrFloat64(inbuffer + offset, &(this->z_m));
+      union {
+        double real;
+        uint64_t base;
+      } u_x_m;
+      u_x_m.base = 0;
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      u_x_m.base |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
+      this->x_m = u_x_m.real;
+      offset += sizeof(this->x_m);
+      union {
+        double real;
+        uint64_t base;
+      } u_y_m;
+      u_y_m.base = 0;
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      u_y_m.base |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
+      this->y_m = u_y_m.real;
+      offset += sizeof(this->y_m);
+      union {
+        double real;
+        uint64_t base;
+      } u_z_m;
+      u_z_m.base = 0;
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      u_z_m.base |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
+      this->z_m = u_z_m.real;
+      offset += sizeof(this->z_m);
       this->flags =  ((uint8_t) (*(inbuffer + offset)));
       offset += sizeof(this->flags);
-      offset += deserializeAvrFloat64(inbuffer + offset, &(this->angle));
+      union {
+        double real;
+        uint64_t base;
+      } u_angle;
+      u_angle.base = 0;
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      u_angle.base |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
+      this->angle = u_angle.real;
+      offset += sizeof(this->angle);
      return offset;
     }
 

@@ -27,12 +27,19 @@
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
+#include <open_motor_msgs/feedback.h>
+#include <open_motor_msgs/pid_config.h>
+#include <open_motor_msgs/setpoints.h>
+
+
+
+
 
 #define GEAR_RATIO 131.0
 #define COUNT_PER_ROT_ENC 16.0
 #define COUNT_PER_ROT GEAR_RATIO * COUNT_PER_ROT_ENC
 
-Communicator::Comm_Data comm_msg;
+// Communicator::Comm_Data comm_msg;
 
 
 // Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT);  
@@ -49,16 +56,21 @@ Motor mot0(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_PER_ROT);
 volatile int goal_pos;
 
 ros::NodeHandle nh;
-std_msgs::Int32 pos_fb;
-std_msgs::Float32 velocity_msg;
+open_motor_msgs::feedback pos_fb;
 
-void set_position_goal(const std_msgs::Int32& goal_msg){
+
+// void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
+//   // goal_pos = goal_msg.data;
+//   // mot0.setSetpoint((int)goal_msg.data);
+// }
+
+void goal_callback(const std_msgs::Int32 goal_msg){
   goal_pos = goal_msg.data;
   // mot0.setSetpoint((int)goal_msg.data);
 }
 
 
-ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &set_position_goal);
+ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &setpoint);
 ros::Publisher enc_feedback_pub("pos_fb", &pos_fb);
 ros::Publisher velocity_pub("velocity_fb", &velocity_msg);
 
