@@ -53,48 +53,53 @@ Motor mot0(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_PER_ROT);
 // static const int LED_PIN = LED_BUILTIN;
 
 
-volatile int goal_pos;
+int goal_pos;
+float goal_vel;
 
 ros::NodeHandle nh;
 open_motor_msgs::feedback feedback;
-std_msgs::Int32 pos_fb;
-std_msgs::Float32 velocity_msg;
 
 
 void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
-  // goal_pos = goal_msg.data;
-  // mot0.setSetpoint((int)goal_msg.data);
+  goal_pos = setpoint_msg.position_setpoint[0];
+  goal_vel = setpoint_msg.velocity_setpoint[0];
 }
 
-void goal_callback(const std_msgs::Int32 goal_msg){
-  goal_pos = goal_msg.data;
-  // mot0.setSetpoint((int)goal_msg.data);
+void pid_config_callback(const open_motor_msgs::pid_config pid_vars){
+  if(pid_vars.update == true){
+    mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
+    mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
+    mot0.setPIDUpdateRate(pid_vars.pid_update_position);
+  }
 }
 
 ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints",&setpoint_callback);
-ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &goal_callback);
-ros::Publisher enc_feedback_pub("pos_fb", &pos_fb);
-ros::Publisher velocity_pub("velocity_fb", &velocity_msg);
+ros::Subscriber<open_motor_msgs::pid_config> pid_config_sub("open_motor_pid_config",&pid_config_callback);
+ros::Publisher feedback_pub("open_motor_feedback", &feedback);
+
 
 void setup() {
-  // Serial.begin(115200);
-
-
 
   nh.getHardware()->setBaud(115200);
   nh.initNode();
-  nh.subscribe(position_goal_sub);
+  nh.subscribe(pid_config_sub);
   nh.subscribe(setpoints_sub);
-  nh.advertise(enc_feedback_pub);
-  nh.advertise(velocity_pub);
+  nh.advertise(feedback_pub);
 
 
 
   mot0.init_motor();
   mot0.enable_motor();
 
-  mot0.setPIDUpdateRate(15);
-  mot0.setPID_vars(1.25, 0.03, 0.0);  
+  // mot0.setPIDUpdateRate(15);
+  mot0.setPID_vars_pos(1.25, 0.03, 0.0);  
+  mot0.setPID_vars_vel(1.0, 0.15, 0.0075);
+
+  for(int i = 0; i<4; i++){
+    feedback.position[i] = 0;
+    feedback.velocity[i] = 0;
+  }
+
 }
 
 void loop() {
@@ -106,13 +111,11 @@ void loop() {
   // velocity_msg.data = mot0.getVelocity();
 
   // error_msg =  mot0.pid_position(goal_pos);
-  velocity_msg.data = mot0.pid_velocity(goal_pos);
+  feedback.velocity[0] = mot0.pid_velocity(goal_vel);
+  feedback.position[0] = mot0.read_enc();
 
+  feedback_pub.publish(&feedback);
 
-
-  pos_fb.data = mot0.read_enc();
-  enc_feedback_pub.publish(&pos_fb);
-  velocity_pub.publish(&velocity_msg);
   delay(5);
 
 }

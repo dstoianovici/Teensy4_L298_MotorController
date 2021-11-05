@@ -28,15 +28,19 @@ class Motor{
         void setSetpoint(int setpoint);
         int getSetpoint();
         void getSetpoint_ROS();
-        std_msgs::Float32 pid_position(int setpoint);
+
+
+        float pid_position(int setpoint);
 
 
         float getVelocity();
         float pid_velocity(float setpoint);
 
-        void setPID_vars(float kP, float kI, float kD);
+        void setPID_vars_pos(float kP, float kI, float kD);
+        void setPID_vars_vel(float kP, float kI, float kD);
 
-        void update_PID(int goal);
+
+        void update_PID_Pos(int goal);
         float update_PID_Vel(float setpoint);
         void setPIDUpdateRate(float millis);
 
@@ -48,6 +52,7 @@ class Motor{
         int _oldSet;
 
         int _setpoint;
+        int _setpoint_old;
 
 
 
@@ -67,7 +72,9 @@ class Motor{
 
         //PID Vars
         volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
-        float _kP, _kI, _kD;
+        float _kP_pos, _kI_pos, _kD_pos;
+        float _kP_vel, _kI_vel, _kD_vel;
+
 
 
         //Velocity calc Vars

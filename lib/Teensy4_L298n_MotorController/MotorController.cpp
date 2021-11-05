@@ -73,19 +73,24 @@ int Motor::getSetpoint(){
     return _setpoint;
 }
 
-void Motor::setPID_vars(float kP, float kI, float kD){
-    _kP = kP;
-    _kI = kI;
-    _kD = kD;
+void Motor::setPID_vars_pos(float kP, float kI, float kD){
+    _kP_pos = kP;
+    _kI_pos = kI;
+    _kD_pos = kD;
 }
 
-std_msgs::Float32 Motor::pid_position(int setpoint){
+void Motor::setPID_vars_vel(float kP, float kI, float kD){
+    _kP_vel = kP;
+    _kI_vel = kI;
+    _kD_vel = kD;
+}
+
+float Motor::pid_position(int setpoint){
   _currentTime = millis();
+  int position = read_enc();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
-  _error = float(setpoint - read_enc());
+  _error = float(setpoint - position);
 
-
-  std_msgs::Float32  error_msg;
 
   float output = 0.0;
 
@@ -93,9 +98,7 @@ std_msgs::Float32 Motor::pid_position(int setpoint){
     _cumError += _error*_elapsedTime;
     _rateError = (_error-_lastError)/_elapsedTime;
 
-    output = _kP*_error + _kI*_cumError + _kD*_rateError;
-
-    error_msg.data = output;
+    output = _kP_pos*_error + _kI_pos*_cumError + _kD_pos*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -109,7 +112,7 @@ std_msgs::Float32 Motor::pid_position(int setpoint){
     drive_motor(0);
   }
 
-return error_msg;
+return position;
 }
 
 float Motor::getVelocity(){
@@ -133,6 +136,7 @@ float Motor::pid_velocity(float setpoint){
   float vel = getVelocity();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
   _error = setpoint - vel;
+  if(setpoint != _setpoint_old) _cumError = 0;
 
 
   float output = 0.0;
@@ -143,7 +147,7 @@ float Motor::pid_velocity(float setpoint){
     _cumError += _error*_elapsedTime;
     _rateError = (_error-_lastError);
 
-    output = _kP*_error + _kI*_cumError + _kD*_rateError;
+    output = _kP_vel*_error + _kI_vel*_cumError + _kD_vel*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -151,6 +155,7 @@ float Motor::pid_velocity(float setpoint){
 
     _previousTime = _currentTime;
     _lastError = _error;
+    _setpoint_old = setpoint;
   }
 
   else drive_motor(0);
@@ -159,7 +164,7 @@ float Motor::pid_velocity(float setpoint){
   return vel;
 }
 
-void Motor::update_PID(int goal){
+void Motor::update_PID_Pos(int goal){
     _currentTime = millis();
 
     if(_currentTimeUpdate - _previousTimeUpdate >= _updateTime_PID){
