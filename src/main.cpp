@@ -35,8 +35,8 @@
 Communicator::Comm_Data comm_msg;
 
 
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT);  
-
+// Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT);  
+Motor mot0(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_PER_ROT);  
 
 
 
@@ -78,12 +78,8 @@ void setup() {
   mot0.init_motor();
   mot0.enable_motor();
 
-  mot0.setPIDUpdateRate(10);
-  mot0.setPID_vars(2.0, 0.5, 0.5);
-
-  
-
-  
+  mot0.setPIDUpdateRate(15);
+  mot0.setPID_vars(1.25, 0.03, 0.0);  
 }
 
 void loop() {
@@ -92,14 +88,16 @@ void loop() {
 
   
   // mot0.drive_motor(goal_pos);
+  // velocity_msg.data = mot0.getVelocity();
+
   // error_msg =  mot0.pid_position(goal_pos);
   velocity_msg.data = mot0.pid_velocity(goal_pos);
+
 
 
   pos_fb.data = mot0.read_enc();
   enc_feedback_pub.publish(&pos_fb);
   velocity_pub.publish(&velocity_msg);
-
-  delay(10);
+  delay(5);
 
 }

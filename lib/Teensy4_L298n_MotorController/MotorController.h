@@ -8,6 +8,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
+#include <vector>
 
 #define MILLIS_PER_MIN 60000.0 //1000 millis/sec * 60 sec/min
 
@@ -36,6 +37,7 @@ class Motor{
         void setPID_vars(float kP, float kI, float kD);
 
         void update_PID(int goal);
+        float update_PID_Vel(float setpoint);
         void setPIDUpdateRate(float millis);
 
 
