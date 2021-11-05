@@ -56,21 +56,23 @@ Motor mot0(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_PER_ROT);
 volatile int goal_pos;
 
 ros::NodeHandle nh;
-open_motor_msgs::feedback pos_fb;
+open_motor_msgs::feedback feedback;
+std_msgs::Int32 pos_fb;
+std_msgs::Float32 velocity_msg;
 
 
-// void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
-//   // goal_pos = goal_msg.data;
-//   // mot0.setSetpoint((int)goal_msg.data);
-// }
+void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
+  // goal_pos = goal_msg.data;
+  // mot0.setSetpoint((int)goal_msg.data);
+}
 
 void goal_callback(const std_msgs::Int32 goal_msg){
   goal_pos = goal_msg.data;
   // mot0.setSetpoint((int)goal_msg.data);
 }
 
-
-ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &setpoint);
+ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints",&setpoint_callback);
+ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &goal_callback);
 ros::Publisher enc_feedback_pub("pos_fb", &pos_fb);
 ros::Publisher velocity_pub("velocity_fb", &velocity_msg);
 
@@ -82,6 +84,7 @@ void setup() {
   nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(position_goal_sub);
+  nh.subscribe(setpoints_sub);
   nh.advertise(enc_feedback_pub);
   nh.advertise(velocity_pub);
 
