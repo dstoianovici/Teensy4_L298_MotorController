@@ -37,4 +37,4 @@ or to test another distro please use
 
 ## Board Dimensions
 ![Board_Dimensions](https://user-images.githubusercontent.com/26233185/141202799-c8fdb869-865a-4dba-a2c7-790d3b03d4e7.JPG)
-All board dimensions are taken from Eagle CAD, feel free to round dimension numbers when convenient. IT should be noted that the 
+All board dimensions are taken from Eagle CAD, feel free to round dimension numbers when convenient. It should be noted that the heat sinks on the L298N IC stick up 30mm from the top of the PCB.
