@@ -6,7 +6,7 @@ This repo serves as documentation for the motor controller library which operate
 ![MotorController](https://user-images.githubusercontent.com/26233185/141203471-50df6b40-a233-4334-bb6f-87546810c80e.jpg)
 
 ### Features
-- ROS Control with custom messages
+- ROS Control with custom messages using rosserial on ROS-Melodic
 - Dynamic PID tuning for each controller 
 - Position and Velocity Setpoints for each motor
 - Abstracted Motor Controller Library
@@ -20,10 +20,20 @@ This repo serves as documentation for the motor controller library which operate
 
 This board is supplied with a firmware allowing for 4 motor control out of the box. This motor controller library uses ROS for PID parameter and setpoint communication as well as feedback. 
 
-### ROS
-These instructions assume you already are familiar with ROS and Linux based OS. 
+### Setting up the host computer
+#### ROS
+These instructions assume you already are familiar with ROS and Linux based OS. Furthermore, this system has been developed for ROS1 Melodic, any other distros are not yet tested.
 
-In order to run the 
+First, ensure that rosserial is installed on you system, if not install using
+
+        sudo apt-get install ros-melodic-rosserial
+        
+or to test another distro please use
+
+        sudo apt-get install ros-<your distro>-rosserial
+
+#### Python
+  TO BE ADDED
 
 ## Board Dimensions
 ![Board_Dimensions](https://user-images.githubusercontent.com/26233185/141202799-c8fdb869-865a-4dba-a2c7-790d3b03d4e7.JPG)
