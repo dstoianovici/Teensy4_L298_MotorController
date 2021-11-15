@@ -1,5 +1,5 @@
 # open_motor
-This repo provides an open source motor controller library with control inputs over ROS adaptable to many hardware control schemes. In current development, the library is implemented on a teensy4.0 using a Teensy4 Motor Shield. 
+This repo provides an open source motor controller library, with control inputs over ROS Serial, adaptable to many hardware control schemes. In current development, the library is implemented on a teensy4.0 using a Teensy4 Motor Shield. 
 
 This Teensy4 Motor shield incoroporates 2x L298N motor driver ICs, 4 encoder inputs, and 4 current measurement circuits allowing for control of 4 DC motors. The firmware provided here allows for direct integration into robotics projects to get protoypes running quickly.
 
