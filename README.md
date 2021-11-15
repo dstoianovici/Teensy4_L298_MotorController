@@ -1,4 +1,4 @@
-# Teensy4_L298_MotorController
+# open_motor
 This Teensy4 Motor shield incoroporates 2x L298N motor driver ICs, 4 encoder inputs, and 4 current measurement circuits allowing for control of 4 DC motors. The firmware provided here allows for direct integration into robotics projects to get protoypes running quickly.
 
 This repo serves as documentation for the motor controller library which operates the Teensy4.0 motor shield as well as documentation for the hardware.
