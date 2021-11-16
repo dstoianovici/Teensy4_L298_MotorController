@@ -130,7 +130,6 @@ class MotorController{
         std::vector<Motor> motors;
 };
 
-
 class Message_Parser{
     public:
         Message_Parser();

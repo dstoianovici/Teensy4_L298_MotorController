@@ -196,7 +196,6 @@ void Motor::assignSetpoint_vel(float setpoint){
     _setpoint_vel = setpoint;
 }
 
-
 float Motor::pid_velocity_setpoint(){
   _currentTime = millis();
   float vel = getVelocity();

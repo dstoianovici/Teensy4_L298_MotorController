@@ -134,34 +134,6 @@ void loop() {
 
   nh.spinOnce();
 
-  
-
-  // mot0.drive_motor(100);
-  // delay(200);
-  // mot0.drive_motor(0);
-
-  // mot1.drive_motor(100);
-  // delay(200);
-  // mot1.drive_motor(0);
-
-
-  // mot2.drive_motor(100);
-  // delay(200);
-  // mot2.drive_motor(0);
-
-
-  // mot3.drive_motor(100);
-  // delay(200);
-  // mot3.drive_motor(0);
-
-
-
-
-  // mot0.drive_motor(goal_pos);
-  // velocity_msg.data = mot0.getVelocity();
-
-  // error_msg =  mot0.pid_position(goal_pos);
-  // feedback.velocity[0] = mot0.pid_velocity(goal_vel);
   feedback.position[0] = mot0.read_enc();
   feedback.position[1] = mot1.read_enc();
   feedback.position[2] = mot2.read_enc();
@@ -174,10 +146,7 @@ void loop() {
 
   feedback_pub.publish(&feedback);
 
-  // motor_controller.run_motors_setpoint();
-
   motor_controller.update_pid_vel_all();
 
   delay(5);
-
 }
