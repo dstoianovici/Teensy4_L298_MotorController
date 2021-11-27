@@ -115,7 +115,7 @@ void setup() {
 
 
   // mot0.setPIDUpdateRate(15);
-  mot3.setPID_vars_pos(1.25, 0.03, 0.0);  
+  mot3.setPID_vars_pos(1.25, 0.03, 0.0);
   mot3.setPID_vars_vel(1.0, 0.15, 0.0075);
 
   motor_controller.assignPIDvars_all_pos(1.25, 0.03, 0.0);

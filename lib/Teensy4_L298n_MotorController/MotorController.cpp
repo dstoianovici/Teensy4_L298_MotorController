@@ -299,10 +299,6 @@ void MotorController::assignPIDvars_all_vel(float kP, float kI, float kD){
 
 
 
-
-
-
-
 // ///////////////Communicator///////////////////////////
 // ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
 //     _baudrate = baudrate;
