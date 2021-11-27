@@ -18,20 +18,16 @@
 **/
 
 
-// #include <Arduino.h>
 #include <MotorController_Pins.h>
 #include <MotorController.h>
-// #include <std_msgs/Int32.h>
-// #include <std_msgs/Float32.h>
-// #include <std_msgs/String.h>
 
-#define SERIAL
+#define SERIAL_COM
 
 #define GEAR_RATIO 131
 #define COUNT_PER_ROT_ENC 16
 #define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
 
-// Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
+Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
 
 
 
@@ -62,17 +58,17 @@ ros::Publisher enc_feedback_pub("enc_reading", &pos_fb);
 ros::Publisher error_string_pub("motor_output", &error_msg);
 #endif
 
-#ifdef SERIAL
+#ifdef SERIAL_COM
 
 #endif
 
 
 void setup() {
 
-  #ifdef SERIAL
+  #ifdef SERIAL_COM
 
-    Serial.begin(115200);
-    Serial.setTimeout(1);
+    Serial.begin(9600);
+    Serial.setTimeout(1.0);
     // pinMode(13, OUTPUT);
 
     
@@ -90,8 +86,8 @@ void setup() {
   #endif
 
 
-  // mot0.init_motor();
-  // mot0.enable_motor();
+  mot0.init_motor();
+  mot0.enable_motor();
 
   // mot0.setPIDUpdateRate(10);
 
@@ -113,26 +109,39 @@ void loop() {
     error_string_pub.publish(&error_msg);
   #endif
 
-  #ifdef SERIAL
+  #ifdef SERIAL_COM
 
-  // if(Serial.available() > 0){
-  //   int val = Serial.parseInt();
+ String msg;
+ StaticJsonDocument<512> msg_doc;
+ int speed = 0;
 
-  //   if(val%2 == 0) digitalWrite(13,HIGH);
-  //   else digitalWrite(13, LOW);
-  // }
+ if (Serial.available() > 0){ 
+   msg = Serial.readStringUntil('\n');
+ }
 
- int x;
- while (!Serial.available());
- x = Serial.readString().toInt();
- Serial.print(x + 1);
+ DeserializationError   error = deserializeJson(msg_doc, msg);
 
+  if (error) {
+    Serial.println(error.c_str()); 
+    return;
+  }
 
+  speed = msg_doc["Speed"];
 
-  #endif
+  
 
-
+  mot0.drive_motor(speed);
+//   if (msg_doc["This"] == "1") {
+//      Serial.println("{\"Success\":\"True\"}");
+//   }
+//   else {
+//       Serial.println("{\"Success\":\"False\"}");
+//    }
 
   delay(50);
 
 }
+
+
+
+  #endif
