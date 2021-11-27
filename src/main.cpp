@@ -27,7 +27,11 @@
 #define COUNT_PER_ROT_ENC 16
 #define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
 
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B); 
+Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B);
+// Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B); 
+Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B); 
+Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B); 
+
 
 
 
@@ -63,11 +67,16 @@ ros::Publisher error_string_pub("motor_output", &error_msg);
 #endif
 
 
+ int speed0 = 0;
+ int speed1 = 0;
+ int speed2 = 0;
+ int speed3 = 0;
+
 void setup() {
 
   #ifdef SERIAL_COM
 
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.setTimeout(1.0);
     // pinMode(13, OUTPUT);
 
@@ -88,6 +97,11 @@ void setup() {
 
   mot0.init_motor();
   mot0.enable_motor();
+  mot2.init_motor();
+  mot2.enable_motor();
+  mot3.init_motor();
+  mot3.enable_motor();
+  
 
   // mot0.setPIDUpdateRate(10);
 
@@ -113,30 +127,34 @@ void loop() {
 
  String msg;
  StaticJsonDocument<512> msg_doc;
- int speed = 0;
 
  if (Serial.available() > 0){ 
    msg = Serial.readStringUntil('\n');
+
+   DeserializationError   error = deserializeJson(msg_doc, msg);
+   if (error) Serial.println(error.c_str()); 
+
+   if(msg_doc["update"] == "true"){
+     Serial.println("Confirmed");
+   }
+
+  speed0 = msg_doc["mot0_speed"];
+  speed2 = msg_doc["mot2_speed"];
+  speed3 = msg_doc["mot3_speed"];
  }
 
- DeserializationError   error = deserializeJson(msg_doc, msg);
 
-  if (error) {
-    Serial.println(error.c_str()); 
-    return;
-  }
-
-  speed = msg_doc["Speed"];
 
   
 
-  mot0.drive_motor(speed);
-//   if (msg_doc["This"] == "1") {
-//      Serial.println("{\"Success\":\"True\"}");
-//   }
-//   else {
-//       Serial.println("{\"Success\":\"False\"}");
-//    }
+  
+
+  mot0.drive_motor(speed0);
+  mot2.drive_motor(speed2);
+  mot3.drive_motor(speed3);
+
+
+
 
   delay(50);
 

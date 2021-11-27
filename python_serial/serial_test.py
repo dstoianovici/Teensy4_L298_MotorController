@@ -8,31 +8,35 @@
 
 
 
-baudRate = 9600
+baudRate = 15200
 port = "/dev/ttyACM0"
-    
-import serial
+
+import open_motor_serial
 import json
+import serial
 import time
 
-
 jtest = {}
-jtest["mot_num"] = 0;
+jtest["update"] = "true"
+jtest["mot0_speed"] = 0
+jtest["mot2_speed"] = 0
+jtest["mot3_speed"] = 0
 
 jtest = json.dumps(jtest,skipkeys = True).encode("ascii")
 
 print(jtest)
 
-arduino = serial.Serial(port, baudRate, timeout=1.0)
+arduino = serial.Serial(port, baudRate, timeout=2.5)
+
 
 def write_read():
-
     arduino.write(jtest)
-    # arduino.flush()
-    time.sleep(0.5)
+    arduino.flush()
+    # time.sleep(0.5)
 
     try:
-        data = arduino.readline().decode('utf-8')
+        data = arduino.readline().decode("utf-8")
+        print("hello nerd")
         print(data)
 
     except Exception as e:
