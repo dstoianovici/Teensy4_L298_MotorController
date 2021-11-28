@@ -28,7 +28,7 @@
 #define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
 
 Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B);
-// Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B); 
+Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B); 
 Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B); 
 Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B); 
 
@@ -76,8 +76,8 @@ void setup() {
 
   #ifdef SERIAL_COM
 
-    Serial.begin(115200);
-    Serial.setTimeout(1.0);
+    Serial.begin(9600);
+    Serial.setTimeout(2.0);
     // pinMode(13, OUTPUT);
 
     
@@ -97,8 +97,13 @@ void setup() {
 
   mot0.init_motor();
   mot0.enable_motor();
+
+  // mot1.init_motor();
+  // mot1.enable_motor();
+
   mot2.init_motor();
   mot2.enable_motor();
+  
   mot3.init_motor();
   mot3.enable_motor();
   
@@ -125,38 +130,44 @@ void loop() {
 
   #ifdef SERIAL_COM
 
- String msg;
- StaticJsonDocument<512> msg_doc;
+ String rx_msg_str;
+ StaticJsonDocument<512> rx_msg;
 
- if (Serial.available() > 0){ 
-   msg = Serial.readStringUntil('\n');
+ StaticJsonDocument<512> tx_doc;
+ String tx_msg;
 
-   DeserializationError   error = deserializeJson(msg_doc, msg);
+ if (Serial.available() > 0){
+   rx_msg_str = Serial.readStringUntil('\n');
+
+   DeserializationError   error = deserializeJson(rx_msg, rx_msg_str);
    if (error) Serial.println(error.c_str()); 
 
-   if(msg_doc["update"] == "true"){
-     Serial.println("Confirmed");
+   if(rx_msg["command"] == "pwm_direct"){
+     Serial.println("msg_recieved");
+     speed0 = rx_msg["pwm0"];
+     speed2 = rx_msg["pwm2"];
+     speed3 = rx_msg["pwm3"];
    }
 
-  speed0 = msg_doc["mot0_speed"];
-  speed2 = msg_doc["mot2_speed"];
-  speed3 = msg_doc["mot3_speed"];
  }
 
-
-
-  
-
-  
 
   mot0.drive_motor(speed0);
   mot2.drive_motor(speed2);
   mot3.drive_motor(speed3);
 
+  tx_doc["msg_type"] = "encoder_pos";
+  tx_doc["enc0"] = mot0.read_enc();
+  tx_doc["enc1"] = mot1.read_enc();
+  tx_doc["enc2"] = mot2.read_enc();
+  tx_doc["end3"] = mot3.read_enc();
+
+  serializeJson(tx_doc,tx_msg);
+
+  Serial.println(tx_msg);
 
 
-
-  delay(50);
+  delay(10);
 
 }
 
