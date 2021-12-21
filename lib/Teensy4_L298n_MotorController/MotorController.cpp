@@ -184,6 +184,14 @@ float Motor::update_PID_Vel(float setpoint){
     return vel;
 }
 
+void Motor::update_PID_Vel_setpoint(){
+    _currentTime = millis();;
+    if(_currentTimeUpdate - _previousTimeUpdate >= _updateTime_PID){
+        float vel = pid_velocity_setpoint();
+        _previousTimeUpdate = millis();
+    }
+}
+
 void Motor::setPIDUpdateRate(float millis){
     _updateTime_PID = millis;
 }

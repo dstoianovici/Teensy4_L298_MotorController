@@ -25,12 +25,12 @@
 
 #define GEAR_RATIO 131
 #define COUNT_PER_ROT_ENC 16
-#define COUNT_PER_ROT GEAR_RATIO*COUNTPER_ROT_ENC
+#define COUNT_PER_ROT GEAR_RATIO*COUNT_PER_ROT_ENC
 
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B);
-Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B); 
-Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B); 
-Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B); 
+Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B, COUNT_PER_ROT);
+Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B, COUNT_PER_ROT); 
+Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B, COUNT_PER_ROT); 
+Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT); 
 
 
 
@@ -97,15 +97,21 @@ void setup() {
 
   mot0.init_motor();
   mot0.enable_motor();
+  mot0.setPID_vars_pos(1.0,0.0,0.0);
+  mot0.setPIDUpdateRate(50);
 
   // mot1.init_motor();
   // mot1.enable_motor();
 
   mot2.init_motor();
   mot2.enable_motor();
+  mot2.setPID_vars_vel(1.0,0.0,0.0);
+  mot2.setPIDUpdateRate(50);
   
   mot3.init_motor();
   mot3.enable_motor();
+  mot3.setPID_vars_vel(1.0,0.0,0.0);
+  mot3.setPIDUpdateRate(50);
 
   
 }
@@ -144,31 +150,48 @@ void loop() {
      speed2 = rx_msg["pwm2"];
      speed3 = rx_msg["pwm3"];
 
-      mot0.drive_motor(speed0);
-      mot2.drive_motor(speed2);
-      mot3.drive_motor(speed3);
+ 
    }
 
-   if(rx_msg["command"] == "vel_pid"){
+  //  if(rx_msg["command"] == "vel_pid"){
+  //    mot0.assignSetpoint_vel(rx_msg["vel0"]);
+  //    mot2.assignSetpoint_vel(rx_msg["vel2"]);
+  //    mot3.assignSetpoint_vel(rx_msg["vel3"]);
 
-   }
+  //  }
 
 
 
  }
 
+ mot0.drive_motor(speed0);
+ mot2.drive_motor(speed2);
+ mot3.drive_motor(speed3);
 
- 
+//  mot0.pid_velocity_setpoint();
+//  mot2.pid_velocity_setpoint();
+//  mot3.pid_velocity_setpoint();
 
-  tx_doc["msg_type"] = "encoder_pos";
+
+  tx_doc["msg_type"] = "feedback";
   tx_doc["enc0"] = mot0.read_enc();
   tx_doc["enc1"] = mot1.read_enc();
   tx_doc["enc2"] = mot2.read_enc();
   tx_doc["end3"] = mot3.read_enc();
+
+  tx_doc["vel0"] = mot0.getVelocity();
+  tx_doc["vel1"] = mot1.getVelocity();
+  tx_doc["vel2"] = mot2.getVelocity();
+  tx_doc["vel3"] = mot3.getVelocity();
+
   serializeJson(tx_doc,tx_msg);
   Serial.println(tx_msg);
   Serial.flush();
   tx_doc.clear();
+
+ 
+
+
 
 
   delay(15);
