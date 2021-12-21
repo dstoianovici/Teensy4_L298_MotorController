@@ -76,8 +76,8 @@ void setup() {
 
   #ifdef SERIAL_COM
 
-    Serial.begin(9600);
-    Serial.setTimeout(2.0);
+    Serial.begin(115200);
+    Serial.setTimeout(0.5);
     // pinMode(13, OUTPUT);
 
     
@@ -143,7 +143,6 @@ void loop() {
    if (error) Serial.println(error.c_str()); 
 
    if(rx_msg["command"] == "pwm_direct"){
-     Serial.println("msg_recieved");
      speed0 = rx_msg["pwm0"];
      speed2 = rx_msg["pwm2"];
      speed3 = rx_msg["pwm3"];
@@ -161,13 +160,13 @@ void loop() {
   tx_doc["enc1"] = mot1.read_enc();
   tx_doc["enc2"] = mot2.read_enc();
   tx_doc["end3"] = mot3.read_enc();
-
   serializeJson(tx_doc,tx_msg);
-
   Serial.println(tx_msg);
+  Serial.flush();
+  tx_doc.clear();
 
 
-  delay(10);
+  delay(15);
 
 }
 

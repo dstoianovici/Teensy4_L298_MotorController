@@ -20,21 +20,21 @@ comms = open_motor_serial.serial_communicator(port,baudRate,0.5)
 
 def main():
     while True:
-        comms.send_pwm_goal(100,0,100,100)
-        print("Response:" + comms.get_response())
-        time.sleep(0.5)
+        # comms.send_pwm_goal(100,0,100,100)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
+
+        # comms.send_pwm_goal(0,0,0,0)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
+
+        # comms.send_pwm_goal(-100,0,-100,-100)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
 
         comms.send_pwm_goal(0,0,0,0)
         print("Response:" + comms.get_response())
-        time.sleep(0.5)
-
-        comms.send_pwm_goal(-100,0,-100,-100)
-        print("Response:" + comms.get_response())
-        time.sleep(0.5)
-
-        comms.send_pwm_goal(0,0,0,0)
-        print("Response:" + comms.get_response())
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         
 

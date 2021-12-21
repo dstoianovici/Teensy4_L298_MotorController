@@ -23,8 +23,15 @@ class serial_communicator:
         self.ser.write(msg)
 
     def get_response(self):
+        self.ser.flushInput()
         data = self.ser.readline().decode("utf-8")
         return data
+
+    # def wait_for_response(self):
+    #     response = "string"
+    #     while(response != "msg_recieved"):
+    #         response = self.get_response()
+        
 
     
 
