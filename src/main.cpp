@@ -106,9 +106,6 @@ void setup() {
   
   mot3.init_motor();
   mot3.enable_motor();
-  
-
-  // mot0.setPIDUpdateRate(10);
 
   
 }
@@ -146,14 +143,22 @@ void loop() {
      speed0 = rx_msg["pwm0"];
      speed2 = rx_msg["pwm2"];
      speed3 = rx_msg["pwm3"];
+
+      mot0.drive_motor(speed0);
+      mot2.drive_motor(speed2);
+      mot3.drive_motor(speed3);
    }
+
+   if(rx_msg["command"] == "vel_pid"){
+
+   }
+
+
 
  }
 
 
-  mot0.drive_motor(speed0);
-  mot2.drive_motor(speed2);
-  mot3.drive_motor(speed3);
+ 
 
   tx_doc["msg_type"] = "encoder_pos";
   tx_doc["enc0"] = mot0.read_enc();
