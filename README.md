@@ -14,7 +14,11 @@ This repo serves as documentation for the motor controller library as well as do
 - Abstracted Motor Controller Library
 - Custom UDEV rules and USB parameters for automatic port connection (Linux)
 
+## Wiring
+The Teensy4.0 Motor Controller v1.1 provides 4 motor outputs, 4 encoder inputs, power input, and headers to plug in the Teensy4.0.
+Each motor block, 0-3, is outlined on the screen print of the board and contains the motor output screw terminals, the encoder pin inputs, and the 4 flyback diodes that enable motor direction. Motor leads can be connected to the boards using the screw terminals and the corresponding encoder is plugged into the vertical pins behind it. Please use the boards screen print and the diagram shown in the **Board Dimensions** section. 
 
+The next step is to plug in the Teensy4.0 into the female headers, and then the power input, VS and GND to the right of the Teensy Headers, can be wired. It is important to have an independent power switch for the power input as the power to the motor controller must be turned on after the Teensy microcontroller has been powered up, this power switch can even be a relay connected to the host computer allowing programatic switching of motor power. **It is imperative that power be provided to the Teensy4.0 via USB before power is given to VS or the board will burn** this is because the Teensy's 3.3V output is used as a reference for the level shifters that allow 5V encoders to be read by the 3.3V logic Teensy.
 
 ## Installation
 This board is supplied with a firmware allowing for 4 motor control out of the box. This motor controller library uses ROS for PID parameter and setpoint communication as well as feedback. 
