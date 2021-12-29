@@ -34,7 +34,7 @@ void Motor::drive_motor(int pwm_duty_cycle){
 }
 
 void Motor::drive_motor_setpoint(){
-    int pwm_duty_cycle = _setpoint;
+    int pwm_duty_cycle = _setpoint_pwm;
     if(pwm_duty_cycle < 0){
         analogWrite(_PWM2,abs(pwm_duty_cycle));
         analogWrite(_PWM1,0);
@@ -65,12 +65,12 @@ void Motor::brake_motor(int brake_power){
     analogWrite(_PWM2,brake_power);
 }
 
-void Motor::assignSetpoint(int setpoint){
-    _setpoint = setpoint;
+void Motor::assignSetpoint_pwm(int setpoint){
+    _setpoint_pwm = setpoint;
 }
 
-int Motor::getSetpoint(){
-    return _setpoint;
+int Motor::getSetpoint_pwm(){
+    return _setpoint_pwm;
 }
 
 void Motor::setPID_vars_pos(float kP, float kI, float kD){
@@ -133,7 +133,7 @@ float Motor::pid_velocity(float setpoint){
   float vel = getVelocity();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
   _error = setpoint - vel;
-  if(setpoint != _setpoint_old) _cumError = 0;
+  if(setpoint != _setpoint_vel_old) _cumError = 0;
 
 
   float output = 0.0;
@@ -152,7 +152,7 @@ float Motor::pid_velocity(float setpoint){
 
     _previousTime = _currentTime;
     _lastError = _error;
-    _setpoint_old = setpoint;
+    _setpoint_vel_old = setpoint;
   }
 
   else drive_motor(0);
@@ -175,19 +175,18 @@ void Motor::update_PID_Pos(int goal){
 
 float Motor::update_PID_Vel(float setpoint){
     float vel = getVelocity();
-    _currentTime = millis();;
+    _currentTime = millis();
     if(_currentTimeUpdate - _previousTimeUpdate >= _updateTime_PID){
         vel = pid_velocity(setpoint);
         _previousTimeUpdate = millis();
     }
-
     return vel;
 }
 
 void Motor::update_PID_Vel_setpoint(){
     _currentTime = millis();;
     if(_currentTimeUpdate - _previousTimeUpdate >= _updateTime_PID){
-        float vel = pid_velocity_setpoint();
+        pid_velocity_setpoint();
         _previousTimeUpdate = millis();
     }
 }
@@ -203,6 +202,36 @@ void Motor::assignSetpoint_pos(int setpoint){
 void Motor::assignSetpoint_vel(float setpoint){
     _setpoint_vel = setpoint;
 }
+
+
+void Motor::pid_position_setpoint(){
+_currentTime = millis();
+  int position = read_enc();
+  _elapsedTime = (_currentTime - _previousTime)/1000.0;
+  _error = float(_setpoint_pos - position);
+
+
+  float output = 0.0;
+
+  if(abs(_error) > 0.0){
+    _cumError += _error*_elapsedTime;
+    _rateError = (_error-_lastError)/_elapsedTime;
+
+    output = _kP_pos*_error + _kI_pos*_cumError + _kD_pos*_rateError;
+    
+    if(output > 255.0) output = 255.0;
+
+    drive_motor((int)output); 
+
+    _previousTime = _currentTime;
+    _lastError = _error;
+  }
+
+  else{
+    drive_motor(0);
+  }
+}
+
 
 float Motor::pid_velocity_setpoint(){
   _currentTime = millis();
@@ -241,11 +270,12 @@ float Motor::pid_velocity_setpoint(){
 
 
 ///////////////////Motor Controller///////////////////
-MotorController::MotorController(Motor &_mot0, Motor &_mot1, Motor &_mot2, Motor &_mot3){
-    addMotor(_mot0);
-    addMotor(_mot1);
-    addMotor(_mot2);
-    addMotor(_mot3);
+MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3, Message_Parser::Comm_Data& data){
+            _data = data;
+            addMotor(mot0);
+            addMotor(mot1);
+            addMotor(mot2);
+            addMotor(mot3);
 }
 
 size_t MotorController::addMotor(Motor &motor){
@@ -253,39 +283,80 @@ size_t MotorController::addMotor(Motor &motor){
     return motors.size();
 }
 
+void MotorController::initAllMotors(){
+     for(uint8_t i = 0; i<motors.size(); i++){
+        motors[i].init_motor();
+    }
+}
+
+void MotorController::enableAllMotors(){
+     for(uint8_t i = 0; i<motors.size(); i++){
+        motors[i].enable_motor();
+    }
+}
+
+void MotorController::disableAllMotors(){
+     for(uint8_t i = 0; i<motors.size(); i++){
+        motors[i].disable_motor();
+    }
+}
+
 void MotorController::run_motor(int motor_num, int pwm){
     motors[motor_num].drive_motor(pwm);
 }
 
-void MotorController::run_motors_setpoint(){
+void MotorController::run_motors_setpoint_pwm(){
     for(uint8_t i = 0; i<motors.size(); i++){
         motors[i].drive_motor_setpoint();
     }
 }
 
-void MotorController::update_pid_vel_all(){
+void MotorController::run_pid_pos_all(){
+    for(uint8_t i =0; i< numMotors(); i++){
+        motors[i].pid_position_setpoint();
+    }
+}
+
+void MotorController::run_pid_vel_all(){
     for(uint8_t i = 0; i < numMotors(); i++){
         motors[i].pid_velocity_setpoint();
     }
 }
 
-void MotorController::updateSetpoints(float setpoints[4]){
+void MotorController::assignSetpoints_pwm(float setpoints[4]){
     for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].assignSetpoint(setpoints[i]);
+        motors[i].assignSetpoint_pwm(setpoints[i]);
     }
 }
 
-void MotorController::updateSetpoints_vel(float setpoints[4]){
+void MotorController::assignSetpoints_vel(float setpoints[4]){
     for(uint8_t i = 0; i<numMotors(); i++){
         motors[i].assignSetpoint_vel(setpoints[i]);
     }
 }
 
-void MotorController::updateSetpoints_pos(int setpoints[4]){
+void MotorController::assignSetpoints_pos(int setpoints[4]){
     for(uint8_t i = 0; i<numMotors(); i++){
         motors[i].assignSetpoint_pos(setpoints[i]);
     }
 }
+
+void MotorController::assignPIDupdate_all(float freq){
+    _pid_update_freq = freq;
+}
+
+void MotorController::updatePID_pos(){
+    if(millis()-_last_update_time >= _pid_update_freq){
+        run_pid_pos_all();
+    }
+}
+
+void MotorController::updatePID_vel(){
+    if(millis()-_last_update_time >= _pid_update_freq){
+        run_pid_vel_all();
+    }
+}
+
 
 int MotorController::numMotors(){
     return motors.size();
@@ -303,11 +374,167 @@ void MotorController::assignPIDvars_all_vel(float kP, float kI, float kD){
     }
 }
 
+void MotorController::parse_data(){
+    switch(_data.command){
+
+        case NONE:
+            break;
+
+        case PWM_DIRECT:
+            for(uint8_t i = 0; i < motors.size(); i++){
+                motors[i].assignSetpoint_pwm(_data.goal_pwm[i]);
+            }
+            break;
+
+        case POS_PID:
+            for(uint8_t i = 0; i < motors.size(); i++){
+                motors[i].assignSetpoint_pos(_data.goal_position[i]);
+            }
+            break;
+        
+        case VEL_PID:
+            for(uint8_t i = 0; i < motors.size(); i++){
+                motors[i].assignSetpoint_vel(_data.goal_velocity[i]);
+            }
+            break;
+        
+        case PID_VARS_POS_ALL:
+            assignPIDvars_all_pos(_data.kP_pos[0],_data.kP_pos[0],_data.kD_pos[0]);
+            break;
+        
+        case PID_VARS_VEL_ALL:
+            assignPIDvars_all_vel(_data.kP_vel[0],_data.kP_vel[0],_data.kD_vel[0]);
+            break;
+    }
+}
+
+void MotorController::prepare_feedback_data(){
+    for(uint8_t i = 0;i<motors.size();i++){
+        _data.pos_feedback[i] = motors[i].read_enc();
+        _data.velocity_feedback[i] = motors[i].getVelocity();
+    }
+}
+
+void MotorController::run_controller(){
+     switch(_data.command){
+        case NONE:
+            break;
+
+        case PWM_DIRECT:
+            run_motors_setpoint_pwm();
+            break;
+
+        case POS_PID:
+            updatePID_pos();
+            break;
+        
+        case VEL_PID:
+            updatePID_vel();
+            break;
+    }
+}
 
 
 
 
-// ///////////////Communicator///////////////////////////
+
+
+
+
+/////////////////Communicators///////////////////////////
+Serial_Comms::Serial_Comms(int baudrate, float timeout, Message_Parser::Comm_Data& data){
+    _baudrate = baudrate;
+    _timeout = timeout;
+    _data = data;
+}
+
+void Serial_Comms::init(){
+    Serial.begin(_baudrate);
+    Serial.setTimeout(_timeout);
+}
+
+
+void Serial_Comms::check_for_data(){
+    if (Serial.available() > 0){
+
+        _data.rx_str = Serial.readStringUntil('\n');
+
+        DeserializationError   error = deserializeJson(_data.rx_json, _data.rx_str);
+        if (error) Serial.println(error.c_str()); 
+
+
+        if(_data.rx_json["command"] == "pwm_direct"){
+            _data.command = PWM_DIRECT;
+            _data.goal_pwm[0] = _data.rx_json["pwm0"];
+            _data.goal_pwm[1] = _data.rx_json["pwm1"];
+            _data.goal_pwm[2] = _data.rx_json["pwm2"];
+            _data.goal_pwm[3] = _data.rx_json["pwm3"];
+        }
+
+        if(_data.rx_json["command"] == "pos_pid"){
+            _data.command = POS_PID;
+            _data.goal_position[0] = _data.rx_json["pos0"];
+            _data.goal_position[1] = _data.rx_json["pos1"];
+            _data.goal_position[2] = _data.rx_json["pos2"];
+            _data.goal_position[3] = _data.rx_json["pos3"];
+        }
+
+        if(_data.rx_json["command"] == "vel_pid"){
+            _data.command = VEL_PID;
+            _data.goal_velocity[0] = _data.rx_json["vel0"];
+            _data.goal_velocity[1] = _data.rx_json["vel1"];
+            _data.goal_velocity[2] = _data.rx_json["vel2"];
+            _data.goal_velocity[3] = _data.rx_json["vel3"];
+        }
+
+        if(_data.rx_json["command"] == "pid_vars_pos_all"){
+            _data.command = PID_VARS_POS_ALL;
+            for(int i = 0; i < 4; i++){
+                _data.kP_pos[i] = _data.rx_json["P"];
+                _data.kI_pos[i] = _data.rx_json["I"];
+                _data.kD_pos[i] = _data.rx_json["D"];
+            }
+        }
+
+        if(_data.rx_json["command"] == "pid_vars_vel_all"){
+            _data.command = PID_VARS_VEL_ALL;
+            for(int i = 0; i < 4; i++){
+                _data.kP_vel[i] = _data.rx_json["P"];
+                _data.kI_vel[i] = _data.rx_json["I"];
+                _data.kD_vel[i] = _data.rx_json["D"];
+            }
+        }
+
+        
+
+        // if(_data.rx_json["command"] == "pid_vars_vel_all"){
+        //     _data.
+        // }
+
+        return;
+    }
+    else return;
+}
+
+void Serial_Comms::send_feedback_data(){
+    _data.tx_json["pos0"] = _data.pos_feedback[0];
+    _data.tx_json["pos1"] = _data.pos_feedback[1];
+    _data.tx_json["pos2"] = _data.pos_feedback[2];
+    _data.tx_json["pos3"] = _data.pos_feedback[3];
+    _data.tx_json["vel0"] = _data.velocity_feedback[0];
+    _data.tx_json["vel1"] = _data.velocity_feedback[1];
+    _data.tx_json["vel2"] = _data.velocity_feedback[2];
+    _data.tx_json["vel3"] = _data.velocity_feedback[3];
+
+    serializeJson(_data.tx_json,_data.tx_str);
+    Serial.println(_data.tx_str);
+    Serial.flush();
+    _data.tx_json.clear();
+}
+
+
+
+
 // ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
 //     _baudrate = baudrate;
 //     _nh = nh;

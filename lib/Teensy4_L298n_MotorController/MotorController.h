@@ -15,7 +15,6 @@
 class Motor{
     public:
         Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rotation);
-
         void init_motor();
         void drive_motor(int pwm_duty_cycle);
         void drive_motor_setpoint();
@@ -23,10 +22,14 @@ class Motor{
         void enable_motor();
         void disable_motor();
         void brake_motor(int brake_power);
-        void assignSetpoint(int setpoint);
+        void assignSetpoint_pwm(int setpoint);
         void assignSetpoint_pos(int setpoint);
         void assignSetpoint_vel(float setpoint);
-        int getSetpoint();
+
+        int getSetpoint_pwm();
+        int getSetpoint_pos();
+        float getSetpoint_vel();
+        
         void getSetpoint_ROS();
 
         float getVelocity();
@@ -35,7 +38,7 @@ class Motor{
         float pid_position(int setpoint);
         float pid_velocity(float setpoint);
 
-        float pid_position_setpoint();
+        void pid_position_setpoint();
         float pid_velocity_setpoint();
 
         void setPID_vars_pos(float kP, float kI, float kD);
@@ -49,30 +52,10 @@ class Motor{
         void update_PID_Pos_setpoint(); //uses internal setpoint
         void update_PID_Vel_setpoint(); //Uses internal setpoint
 
-
-
-        int _enc_count;
-
-        int _newSet;
-        int _oldSet;
-
-        int _setpoint;
-        int _setpoint_old;
-
-        int _setpoint_pos;
-        int _setpoint_pos_old;
-
-        float _setpoint_vel;
-        float _setpoint_vel_old;
-
-
-
-
-
-        Encoder encoder;
-
-
     private:
+
+        //Encoder Objects
+        Encoder encoder;
 
         //Motor Vars
         int _EN;
@@ -82,6 +65,21 @@ class Motor{
         int _encA;
         int _encB;
         float  _ticks_per_rot;
+        int _enc_count;
+
+        //Setpoint Vars
+        int _newSet;
+        int _oldSet;
+
+        int _setpoint_pwm;
+        int _setpoint_pwm_old;
+
+        int _setpoint_pos;
+        int _setpoint_pos_old;
+
+        float _setpoint_vel;
+        float _setpoint_vel_old;
+
 
         //PID Vars
         volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
@@ -96,62 +94,96 @@ class Motor{
 
 
         //Vars for PID update Rate
-        volatile float _updateTime_PID,_currentTimeUpdate,_previousTimeUpdate;
-
-        
-
-        
+        volatile float _updateTime_PID,_currentTimeUpdate,_previousTimeUpdate;       
 };
 
-class MotorController{
+class Message_Parser{
     public:
-        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3); //Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3
 
+        enum Command{
+           NONE,
+           PWM_DIRECT,
+           POS_PID,
+           VEL_PID,
+           PID_VARS_POS_ALL,
+           PID_VARS_VEL_ALL
+        };
+
+        struct Comm_Data{
+            Command command = NONE;
+
+            String rx_str;
+            StaticJsonDocument<512> rx_json;
+            String tx_str;
+            StaticJsonDocument<512> tx_json;
+
+            float kP_pos[4]; //For each motor
+            float kI_pos[4];
+            float kD_pos[4];
+            int goal_position[4] = {0,0,0,0};
+            int pos_feedback[4];
+
+            float kP_vel[4]; //For each motor
+            float kI_vel[4];
+            float kD_vel[4];
+            float goal_velocity[4] = {0,0,0,0};
+            float velocity_feedback[4];
+
+            int goal_pwm[4] = {0,0,0,0};             
+        };
+};
+
+class MotorController : private Message_Parser {
+    public:
+        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3, Message_Parser::Comm_Data& data);
         size_t addMotor(Motor &motor); //Adds motor to motors vector returns size of motors vector
+        void initAllMotors();
+        void enableAllMotors();
+        void disableAllMotors();
         void run_motor(int motor_num, int pwm); //runs a specfic motor in the motors array at given pwm
-        void run_motors_setpoint();
-        void update_pid_vel_all(); //uses internal setpoint update for velocity goals on motors
-        void updateSetpoints(float setpoints[4]);
-        void updateSetpoints_vel(float setpoints[4]);
-        void updateSetpoints_pos(int setpoints[4]);
+        void run_motors_setpoint_pwm(); //Run all motors at given PWM setpoints
+        void run_pid_pos_all();
+        void run_pid_vel_all(); //uses internal setpoint update for velocity goals on motors
+
+        void assignSetpoints_pwm(float setpoints[4]);
+        void assignSetpoints_vel(float setpoints[4]);
+        void assignSetpoints_pos(int setpoints[4]);
+
+        void updatePID_pos();
+        void updatePID_vel();
+
         int numMotors();
         void assignPIDvars_all_pos(float kP, float kI, float kD);
         void assignPIDvars_all_vel(float kP, float kI, float kD);
+        void assignPIDupdate_all(float freq);
+        void parse_data();
+        void prepare_feedback_data();
+        void run_controller();
+
 
 
 
     private:
         int motor_count = 0;
         std::vector<Motor> motors;
+        Message_Parser::Comm_Data _data;
+        volatile float _pid_update_freq;
+        float _last_update_time;
 };
 
-class Message_Parser{
+
+
+class Serial_Comms : private Message_Parser{
     public:
-        Message_Parser();
-        virtual void init();
-
-        struct Comm_Data{
-            float kP_pos[4]; //For each motor
-            float kI_pos[4];
-            float kD_pos[4];
-            int goal_position[4] = {0,0,0,0};
-            int pos_error[4];
-
-            float kP_vel[4]; //For each motor
-            float kI_vel[4];
-            float kD_vel[4];
-            float goal_velocity[4];
-            float velocity_error[4];             
-        };
+            Serial_Comms(int baudrate, float timeout, Message_Parser::Comm_Data& data);
+            void init();
+            void check_for_data();
+            void send_feedback_data();
 
     private:
-
-};
-
-class Serial_Comms : private Message_Parser , public Motor{
-    public:
-
-    private:
+            Message_Parser::Comm_Data _data;
+            int _baudrate;
+            float _timeout;
 
 };
 

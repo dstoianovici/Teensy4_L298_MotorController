@@ -27,25 +27,23 @@
 #define COUNT_PER_ROT_ENC 16
 #define COUNT_PER_ROT GEAR_RATIO*COUNT_PER_ROT_ENC
 
+#define BAUD 115200
+#define TIMEOUT 0.5
+
+Message_Parser::Comm_Data comm_data;
+
+
 Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B, COUNT_PER_ROT);
 Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B, COUNT_PER_ROT); 
 Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B, COUNT_PER_ROT); 
-Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT); 
+Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT);
+
+MotorController motors(mot0,mot1,mot2,mot3,comm_data);
 
 
 
 
-// #ifdef ROS
-   
-// #ifdef PYTHON
 
-
-// MotorController motor_controller;
-
-// static const int LED_PIN = LED_BUILTIN;
-
-
-volatile int goal_pos;
 
 #ifdef ROS
 ros::NodeHandle nh;
@@ -63,22 +61,16 @@ ros::Publisher error_string_pub("motor_output", &error_msg);
 #endif
 
 #ifdef SERIAL_COM
-
+Serial_Comms serial_comms(BAUD,TIMEOUT,comm_data);
 #endif
 
 
- int speed0 = 0;
- int speed1 = 0;
- int speed2 = 0;
- int speed3 = 0;
 
 void setup() {
 
   #ifdef SERIAL_COM
 
-    Serial.begin(115200);
-    Serial.setTimeout(0.5);
-    // pinMode(13, OUTPUT);
+    serial_comms.init();
 
     
   #endif
@@ -95,34 +87,35 @@ void setup() {
   #endif
 
 
-  mot0.init_motor();
-  mot0.enable_motor();
-  mot0.setPID_vars_pos(1.0,0.0,0.0);
-  mot0.setPIDUpdateRate(50);
+  // mot0.init_motor();
+  // mot0.enable_motor();
+  // mot0.setPID_vars_pos(1.0,0.0,0.0);
+  // mot0.setPIDUpdateRate(50);
 
-  // mot1.init_motor();
-  // mot1.enable_motor();
+  // // mot1.init_motor();
+  // // mot1.enable_motor();
 
-  mot2.init_motor();
-  mot2.enable_motor();
-  mot2.setPID_vars_vel(1.0,0.0,0.0);
-  mot2.setPIDUpdateRate(50);
+  // mot2.init_motor();
+  // mot2.enable_motor();
+  // mot2.setPID_vars_vel(1.0,0.0,0.0);
+  // mot2.setPIDUpdateRate(50);
   
-  mot3.init_motor();
-  mot3.enable_motor();
-  mot3.setPID_vars_vel(1.0,0.0,0.0);
-  mot3.setPIDUpdateRate(50);
+  // mot3.init_motor();
+  // mot3.enable_motor();
+  // mot3.setPID_vars_vel(1.0,0.0,0.0);
+  // mot3.setPIDUpdateRate(50);
+
+  motors.initAllMotors();
+  motors.enableAllMotors();
+  motors.assignPIDupdate_all(50.0);
+  motors.assignPIDvars_all_vel(1.0,0.0,0.0);
+  motors.assignPIDvars_all_pos(1.0,0.0,0.0);
+
 
   
 }
 
 void loop() {
-
-
-  
-  // // mot0.drive_motor(goal_pos);
-  // error_msg =  mot0.pid_position(goal_pos);
-
 
   #ifdef ROS
     nh.spinOnce();
@@ -133,69 +126,12 @@ void loop() {
 
   #ifdef SERIAL_COM
 
- String rx_msg_str;
- StaticJsonDocument<512> rx_msg;
-
- StaticJsonDocument<512> tx_doc;
- String tx_msg;
-
- if (Serial.available() > 0){
-   rx_msg_str = Serial.readStringUntil('\n');
-
-   DeserializationError   error = deserializeJson(rx_msg, rx_msg_str);
-   if (error) Serial.println(error.c_str()); 
-
-   if(rx_msg["command"] == "pwm_direct"){
-     speed0 = rx_msg["pwm0"];
-     speed2 = rx_msg["pwm2"];
-     speed3 = rx_msg["pwm3"];
-
+  serial_comms.check_for_data();
+  motors.run_controller();
+  motors.prepare_feedback_data();
+  serial_comms.send_feedback_data();
  
-   }
-
-  //  if(rx_msg["command"] == "vel_pid"){
-  //    mot0.assignSetpoint_vel(rx_msg["vel0"]);
-  //    mot2.assignSetpoint_vel(rx_msg["vel2"]);
-  //    mot3.assignSetpoint_vel(rx_msg["vel3"]);
-
-  //  }
-
-
-
- }
-
- mot0.drive_motor(speed0);
- mot2.drive_motor(speed2);
- mot3.drive_motor(speed3);
-
-//  mot0.pid_velocity_setpoint();
-//  mot2.pid_velocity_setpoint();
-//  mot3.pid_velocity_setpoint();
-
-
-  tx_doc["msg_type"] = "feedback";
-  tx_doc["enc0"] = mot0.read_enc();
-  tx_doc["enc1"] = mot1.read_enc();
-  tx_doc["enc2"] = mot2.read_enc();
-  tx_doc["end3"] = mot3.read_enc();
-
-  tx_doc["vel0"] = mot0.getVelocity();
-  tx_doc["vel1"] = mot1.getVelocity();
-  tx_doc["vel2"] = mot2.getVelocity();
-  tx_doc["vel3"] = mot3.getVelocity();
-
-  serializeJson(tx_doc,tx_msg);
-  Serial.println(tx_msg);
-  Serial.flush();
-  tx_doc.clear();
-
- 
-
-
-
-
   delay(15);
-
 }
 
 
