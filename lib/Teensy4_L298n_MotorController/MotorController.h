@@ -10,6 +10,26 @@
 
 #define MILLIS_PER_MIN 60000.0 //1000 millis/sec * 60 sec/min
 
+enum Command{
+        NONE,
+        PWM_DIRECT,
+        POS_PID,
+        VEL_PID,
+        PID_VARS_POS_ALL,
+        PID_VARS_VEL_ALL
+};
+
+struct Motor_Struct{
+    int EN;
+    int PWM1;
+    int PWM2;
+    int SENSE;
+    int encA;
+    int encB;
+    float ticks_per_rotation;
+};
+
+
 
 
 class Motor{
@@ -68,9 +88,6 @@ class Motor{
         int _enc_count;
 
         //Setpoint Vars
-        int _newSet;
-        int _oldSet;
-
         int _setpoint_pwm;
         int _setpoint_pwm_old;
 
@@ -100,22 +117,13 @@ class Motor{
 class Message_Parser{
     public:
 
-        enum Command{
-           NONE,
-           PWM_DIRECT,
-           POS_PID,
-           VEL_PID,
-           PID_VARS_POS_ALL,
-           PID_VARS_VEL_ALL
-        };
-
         struct Comm_Data{
             Command command = NONE;
 
             String rx_str;
-            StaticJsonDocument<512> rx_json;
+            StaticJsonDocument<1024> rx_json;
             String tx_str;
-            StaticJsonDocument<512> tx_json;
+            StaticJsonDocument<1024> tx_json;
 
             float kP_pos[4]; //For each motor
             float kI_pos[4];
@@ -133,10 +141,10 @@ class Message_Parser{
         };
 };
 
-class MotorController : private Message_Parser {
+class MotorController{
     public:
-        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3, Message_Parser::Comm_Data& data);
-        size_t addMotor(Motor &motor); //Adds motor to motors vector returns size of motors vector
+        MotorController(const Motor &mot0, const Motor &mot1, const Motor &mot2, const Motor &mot3);
+        size_t addMotor(const Motor &motor); //Adds motor to motors vector returns size of motors vector
         void initAllMotors();
         void enableAllMotors();
         void disableAllMotors();
@@ -144,6 +152,7 @@ class MotorController : private Message_Parser {
         void run_motors_setpoint_pwm(); //Run all motors at given PWM setpoints
         void run_pid_pos_all();
         void run_pid_vel_all(); //uses internal setpoint update for velocity goals on motors
+        void drive_all(int pwm);
 
         void assignSetpoints_pwm(float setpoints[4]);
         void assignSetpoints_vel(float setpoints[4]);
@@ -156,32 +165,30 @@ class MotorController : private Message_Parser {
         void assignPIDvars_all_pos(float kP, float kI, float kD);
         void assignPIDvars_all_vel(float kP, float kI, float kD);
         void assignPIDupdate_all(float freq);
-        void parse_data();
-        void prepare_feedback_data();
-        void run_controller();
+        void parse_data(Message_Parser::Comm_Data& data);
+        void prepare_feedback_data(Message_Parser::Comm_Data& data);
+        void run_controller(Message_Parser::Comm_Data& data);
 
+        int* getEncoder_all();
+        void printEncoder_All();
 
+        std::vector<Motor> motors;
 
 
     private:
         int motor_count = 0;
-        std::vector<Motor> motors;
-        Message_Parser::Comm_Data _data;
         volatile float _pid_update_freq;
         float _last_update_time;
 };
 
-
-
-class Serial_Comms : private Message_Parser{
+class Serial_Comms{
     public:
-            Serial_Comms(int baudrate, float timeout, Message_Parser::Comm_Data& data);
+            Serial_Comms(int baudrate, float timeout);
             void init();
-            void check_for_data();
-            void send_feedback_data();
+            void check_for_data(Message_Parser::Comm_Data& data);
+            void send_feedback_data(Message_Parser::Comm_Data& data);
 
     private:
-            Message_Parser::Comm_Data _data;
             int _baudrate;
             float _timeout;
 
@@ -192,8 +199,6 @@ class Serial_Comms : private Message_Parser{
 //         ROS_Comms(ros::NodeHandle &nh,int baudrate);
 //         void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg);
 //         void pid_config_callback(const open_motor_msgs::pid_config pid_vars);
-
-
 
 //     private:
 //         int _baudrate;

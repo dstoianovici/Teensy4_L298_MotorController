@@ -28,17 +28,17 @@
 #define COUNT_PER_ROT GEAR_RATIO*COUNT_PER_ROT_ENC
 
 #define BAUD 115200
-#define TIMEOUT 0.5
+#define TIMEOUT 1.0
 
 Message_Parser::Comm_Data comm_data;
 
 
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B, COUNT_PER_ROT);
-Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B, COUNT_PER_ROT); 
-Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B, COUNT_PER_ROT); 
-Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT);
+Motor_Struct mot0 = {MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B, COUNT_PER_ROT};
+Motor_Struct mot1 = {MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE1,ENC1_A,ENC1_B, COUNT_PER_ROT}; 
+Motor_Struct mot2 = {MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE2,ENC2_A,ENC2_B, COUNT_PER_ROT}; 
+Motor_Struct mot3 = {MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B, COUNT_PER_ROT};
 
-MotorController motors(mot0,mot1,mot2,mot3,comm_data);
+MotorController motors(mot0,mot1,mot2,mot3);
 
 
 
@@ -61,7 +61,7 @@ ros::Publisher error_string_pub("motor_output", &error_msg);
 #endif
 
 #ifdef SERIAL_COM
-Serial_Comms serial_comms(BAUD,TIMEOUT,comm_data);
+Serial_Comms serial_comms(BAUD,TIMEOUT);
 #endif
 
 
@@ -107,9 +107,13 @@ void setup() {
 
   motors.initAllMotors();
   motors.enableAllMotors();
-  motors.assignPIDupdate_all(50.0);
+  motors.assignPIDupdate_all(10.0);
   motors.assignPIDvars_all_vel(1.0,0.0,0.0);
   motors.assignPIDvars_all_pos(1.0,0.0,0.0);
+
+  motors.drive_all(100);
+  delay(250);
+  motors.drive_all(0);
 
 
   
@@ -126,10 +130,27 @@ void loop() {
 
   #ifdef SERIAL_COM
 
-  serial_comms.check_for_data();
-  motors.run_controller();
-  motors.prepare_feedback_data();
-  serial_comms.send_feedback_data();
+  serial_comms.check_for_data(comm_data);
+
+  // motors.run_controller(comm_data);
+  // motors.prepare_feedback_data(comm_data);
+
+
+  // Serial.print(comm_data.goal_pwm[0]);
+  // Serial.print(",");
+  // Serial.print(comm_data.goal_pwm[1]);
+  // Serial.print(",");
+  // Serial.print(comm_data.goal_pwm[2]);
+  // Serial.print(",");
+  // Serial.println(comm_data.goal_pwm[3]);
+
+  motors.printEncoder_All();
+
+
+  Serial.println(mot3.read_enc());
+
+
+  Serial.println();
  
   delay(15);
 }
