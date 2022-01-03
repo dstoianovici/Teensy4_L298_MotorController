@@ -34,7 +34,9 @@ struct Motor_Struct{
 
 class Motor{
     public:
-        Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rotation);
+        // Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rotation);
+        Motor(Motor_Struct _mot);
+        Motor();
         void init_motor();
         void drive_motor(int pwm_duty_cycle);
         void drive_motor_setpoint();
@@ -141,10 +143,11 @@ class Message_Parser{
         };
 };
 
-class MotorController{
+class MotorController : private Message_Parser , private Motor{
     public:
-        MotorController(const Motor &mot0, const Motor &mot1, const Motor &mot2, const Motor &mot3);
+        MotorController(Motor_Struct s_mot0, Motor_Struct s_mot1, Motor_Struct s_mot2, Motor_Struct s_mot3);
         size_t addMotor(const Motor &motor); //Adds motor to motors vector returns size of motors vector
+        size_t addMotor_Struct(Motor_Struct mot);
         void initAllMotors();
         void enableAllMotors();
         void disableAllMotors();
@@ -172,14 +175,22 @@ class MotorController{
         int* getEncoder_all();
         void printEncoder_All();
 
-        std::vector<Motor> motors;
-
 
     private:
+        std::vector<Motor> motors;
         int motor_count = 0;
         volatile float _pid_update_freq;
         float _last_update_time;
+
+        Motor motor0;
+        Motor motor1;
+        Motor motor2;
+        Motor motor3;
+        
+
+
 };
+
 
 class Serial_Comms{
     public:
