@@ -147,7 +147,7 @@ void loop() {
   motors.printEncoder_All();
 
 
-  Serial.println(mot3.read_enc());
+  // Serial.println(mot3.read_enc());
 
 
   Serial.println();

@@ -2,13 +2,25 @@
 
 
 //Explicit Constructor
-Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rot) : encoder(encA,encB){
-    _EN = EN;
-    _PWM1 = PWM1;
-    _PWM2 = PWM2;
-    _SENSE = SENSE;
+// Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rot) : encoder(encA,encB){
+//     _EN = EN;
+//     _PWM1 = PWM1;
+//     _PWM2 = PWM2;
+//     _SENSE = SENSE;
 
-    _ticks_per_rot = ticks_per_rot;   
+//     _ticks_per_rot = ticks_per_rot;   
+
+//     _enc_count = 0;
+//     _previousTimeUpdate = 0;
+// }
+
+Motor::Motor(Motor_Struct _mot) : encoder(int(_mot.encA), int(_mot.encB)){ //For use with Motor_Struct
+    _EN = _mot.EN;
+    _PWM1 = _mot.PWM1;
+    _PWM2 = _mot.PWM2;
+    _SENSE = _mot.SENSE;
+
+    _ticks_per_rot = _mot.ticks_per_rotation;   
 
     _enc_count = 0;
     _previousTimeUpdate = 0;
@@ -270,17 +282,28 @@ float Motor::pid_velocity_setpoint(){
 
 
 ///////////////////Motor Controller///////////////////
-MotorController::MotorController(const Motor &mot0, const Motor &mot1, const Motor &mot2, const Motor &mot3){
-            addMotor(mot0);
-            addMotor(mot1);
-            addMotor(mot2);
-            addMotor(mot3);
+MotorController::MotorController(Motor_Struct s_mot0, Motor_Struct s_mot1, Motor_Struct s_mot2, Motor_Struct smot3) : motor0(s_mot0), motor1(s_mot1), motor2(s_mot2), motor3(smot3) {
+            motors.push_back(motor0);
+            motors.push_back(motor1);
+            motors.push_back(motor2);
+            motors.push_back(motor3);
+
+            // addMotor_Struct(_mot0);
+            // addMotor_Struct(_mot1);
+            // addMotor_Struct(_mot2);
+            // addMotor_Struct(_mot3);
 }
 
 size_t MotorController::addMotor(const Motor &motor){
     motors.push_back(motor);
     return motors.size();
 }
+
+// size_t MotorController::addMotor_Struct(Motor_Struct mot){
+//     Motor motor(mot.EN,mot.PWM1,mot.PWM2,mot.SENSE,mot.encA,mot.encB,mot.ticks_per_rotation);
+//     motors.push_back(motor);
+//     return motors.size();
+// }
 
 void MotorController::initAllMotors(){
      for(uint8_t i = 0; i<motors.size(); i++){
@@ -379,13 +402,13 @@ void MotorController::assignPIDvars_all_vel(float kP, float kI, float kD){
     }
 }
 
-int* MotorController::getEncoder_all(){
-    int encoder_vals[4] = {0,0,0,0};
-    for(uint8_t i = 0;i<motors.size();i++){
-        encoder_vals[i] = motors[i].read_enc();
-    }
-    return encoder_vals;
-}
+// int* MotorController::getEncoder_all(){
+//     int* encoder_vals = {0,0,0,0};
+//     for(uint8_t i = 0;i<motors.size();i++){
+//         encoder_vals[i] = motors[i].read_enc();
+//     }
+//     return encoder_vals;
+// }
 
 void MotorController::printEncoder_All(){
     for(uint8_t i = 0; i < motors.size(); i++){
