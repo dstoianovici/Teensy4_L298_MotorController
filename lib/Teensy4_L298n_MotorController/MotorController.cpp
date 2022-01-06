@@ -85,7 +85,7 @@ void Motor::setPID_vars_vel(float kP, float kI, float kD){
     _kD_vel = kD;
 }
 
-float Motor::pid_position(int setpoint){
+int Motor::pid_position(int setpoint){
   _currentTime = millis();
   int position = read_enc();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
@@ -270,8 +270,7 @@ float Motor::pid_velocity_setpoint(){
 
 
 ///////////////////Motor Controller///////////////////
-MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3, Message_Parser::Comm_Data& data){
-            _data = data;
+MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3){
             addMotor(mot0);
             addMotor(mot1);
             addMotor(mot2);
@@ -415,24 +414,24 @@ void MotorController::prepare_feedback_data(){
     }
 }
 
-void MotorController::run_controller(){
-     switch(_data.command){
-        case NONE:
-            break;
+// void MotorController::run_controller(){
+//      switch(_data.command){
+//         case NONE:
+//             break;
 
-        case PWM_DIRECT:
-            run_motors_setpoint_pwm();
-            break;
+//         case PWM_DIRECT:
+//             run_motors_setpoint_pwm();
+//             break;
 
-        case POS_PID:
-            updatePID_pos();
-            break;
+//         case POS_PID:
+//             updatePID_pos();
+//             break;
         
-        case VEL_PID:
-            updatePID_vel();
-            break;
-    }
-}
+//         case VEL_PID:
+//             updatePID_vel();
+//             break;
+//     }
+// }
 
 
 
@@ -442,10 +441,9 @@ void MotorController::run_controller(){
 
 
 /////////////////Communicators///////////////////////////
-Serial_Comms::Serial_Comms(int baudrate, float timeout, Message_Parser::Comm_Data& data){
+Serial_Comms::Serial_Comms(int baudrate, float timeout){
     _baudrate = baudrate;
     _timeout = timeout;
-    _data = data;
 }
 
 void Serial_Comms::init(){
@@ -454,82 +452,78 @@ void Serial_Comms::init(){
 }
 
 
-void Serial_Comms::check_for_data(){
+void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
     if (Serial.available() > 0){
 
-        _data.rx_str = Serial.readStringUntil('\n');
+        data.rx_str = Serial.readStringUntil('\n');
 
-        DeserializationError   error = deserializeJson(_data.rx_json, _data.rx_str);
+        DeserializationError   error = deserializeJson(data.rx_json, data.rx_str);
         if (error) Serial.println(error.c_str()); 
 
 
-        if(_data.rx_json["command"] == "pwm_direct"){
-            _data.command = PWM_DIRECT;
-            _data.goal_pwm[0] = _data.rx_json["pwm0"];
-            _data.goal_pwm[1] = _data.rx_json["pwm1"];
-            _data.goal_pwm[2] = _data.rx_json["pwm2"];
-            _data.goal_pwm[3] = _data.rx_json["pwm3"];
+        if(data.rx_json["command"] == "pwm_direct"){
+            data.command = PWM_DIRECT;
+            data.goal_pwm[0] = data.rx_json["pwm0"];
+            data.goal_pwm[1] = data.rx_json["pwm1"];
+            data.goal_pwm[2] = data.rx_json["pwm2"];
+            data.goal_pwm[3] = data.rx_json["pwm3"];
         }
 
-        if(_data.rx_json["command"] == "pos_pid"){
-            _data.command = POS_PID;
-            _data.goal_position[0] = _data.rx_json["pos0"];
-            _data.goal_position[1] = _data.rx_json["pos1"];
-            _data.goal_position[2] = _data.rx_json["pos2"];
-            _data.goal_position[3] = _data.rx_json["pos3"];
+        if(data.rx_json["command"] == "pos_pid"){
+            data.command = POS_PID;
+            data.goal_position[0] = data.rx_json["pos0"];
+            data.goal_position[1] = data.rx_json["pos1"];
+            data.goal_position[2] = data.rx_json["pos2"];
+            data.goal_position[3] = data.rx_json["pos3"];
         }
 
-        if(_data.rx_json["command"] == "vel_pid"){
-            _data.command = VEL_PID;
-            _data.goal_velocity[0] = _data.rx_json["vel0"];
-            _data.goal_velocity[1] = _data.rx_json["vel1"];
-            _data.goal_velocity[2] = _data.rx_json["vel2"];
-            _data.goal_velocity[3] = _data.rx_json["vel3"];
+        if(data.rx_json["command"] == "vel_pid"){
+            data.command = VEL_PID;
+            data.goal_velocity[0] = data.rx_json["vel0"];
+            data.goal_velocity[1] = data.rx_json["vel1"];
+            data.goal_velocity[2] = data.rx_json["vel2"];
+            data.goal_velocity[3] = data.rx_json["vel3"];
         }
 
-        if(_data.rx_json["command"] == "pid_vars_pos_all"){
-            _data.command = PID_VARS_POS_ALL;
+        if(data.rx_json["command"] == "pid_vars_pos_all"){
+            data.command = PID_VARS_POS_ALL;
             for(int i = 0; i < 4; i++){
-                _data.kP_pos[i] = _data.rx_json["P"];
-                _data.kI_pos[i] = _data.rx_json["I"];
-                _data.kD_pos[i] = _data.rx_json["D"];
+                data.kP_pos[i] = data.rx_json["P"];
+                data.kI_pos[i] = data.rx_json["I"];
+                data.kD_pos[i] = data.rx_json["D"];
             }
         }
 
-        if(_data.rx_json["command"] == "pid_vars_vel_all"){
-            _data.command = PID_VARS_VEL_ALL;
+        if(data.rx_json["command"] == "pid_vars_vel_all"){
+            data.command = PID_VARS_VEL_ALL;
             for(int i = 0; i < 4; i++){
-                _data.kP_vel[i] = _data.rx_json["P"];
-                _data.kI_vel[i] = _data.rx_json["I"];
-                _data.kD_vel[i] = _data.rx_json["D"];
+                data.kP_vel[i] = data.rx_json["P"];
+                data.kI_vel[i] = data.rx_json["I"];
+                data.kD_vel[i] = data.rx_json["D"];
             }
         }
 
-        
-
-        // if(_data.rx_json["command"] == "pid_vars_vel_all"){
-        //     _data.
-        // }
-
-        return;
+       return;
     }
     else return;
 }
 
-void Serial_Comms::send_feedback_data(){
-    _data.tx_json["pos0"] = _data.pos_feedback[0];
-    _data.tx_json["pos1"] = _data.pos_feedback[1];
-    _data.tx_json["pos2"] = _data.pos_feedback[2];
-    _data.tx_json["pos3"] = _data.pos_feedback[3];
-    _data.tx_json["vel0"] = _data.velocity_feedback[0];
-    _data.tx_json["vel1"] = _data.velocity_feedback[1];
-    _data.tx_json["vel2"] = _data.velocity_feedback[2];
-    _data.tx_json["vel3"] = _data.velocity_feedback[3];
+void Serial_Comms::send_feedback_data(Message_Parser::Comm_Data& data){
+    data.tx_json["pos0"] = data.pos_feedback[0];
+    data.tx_json["pos1"] = data.pos_feedback[1];
+    data.tx_json["pos2"] = data.pos_feedback[2];
+    data.tx_json["pos3"] = data.pos_feedback[3];
+    data.tx_json["vel0"] = data.velocity_feedback[0];
+    data.tx_json["vel1"] = data.velocity_feedback[1];
+    data.tx_json["vel2"] = data.velocity_feedback[2];
+    data.tx_json["vel3"] = data.velocity_feedback[3];
 
-    serializeJson(_data.tx_json,_data.tx_str);
-    Serial.println(_data.tx_str);
-    Serial.flush();
-    _data.tx_json.clear();
+    serializeJson(data.tx_json,Serial);
+    Serial.println();
+    
+    // Serial.print(data.tx_str);
+    // Serial.flush();
+    // data.tx_json.clear();
 }
 
 

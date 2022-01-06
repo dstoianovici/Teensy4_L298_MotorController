@@ -34,12 +34,25 @@ class serial_communicator:
 
         self.ser.write(msg)
 
+    def send_pos_goal(self,pos0,pos1,pos2,pos3):
+        self.msg_data["command"] = "pos_pid"
+        self.msg_data["pos0"] = pos0
+        self.msg_data["pos1"] = pos1
+        self.msg_data["pos2"] = pos2
+        self.msg_data["pos3"] = pos3
+
+        msg = json.dumps(self.msg_data).encode("ascii")
+
+        self.ser.write(msg)
+
 
     def get_response(self):
         self.ser.flushInput()
         data = self.ser.readline().decode("utf-8")
         return data
 
+    def isOpen(self):
+       return self.ser.is_open
     # def wait_for_response(self):
     #     response = "string"
     #     while(response != "msg_recieved"):

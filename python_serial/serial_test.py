@@ -9,6 +9,7 @@
 
 
 baudRate = 115200
+timeout = 0.5
 port = "/dev/ttyACM0"
 
 import open_motor_serial
@@ -16,7 +17,7 @@ import json
 import serial
 import time
 
-comms = open_motor_serial.serial_communicator(port,baudRate,0.5)
+comms = open_motor_serial.serial_communicator(port,baudRate,timeout)
 
 def main():
     while True:

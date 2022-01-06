@@ -10,7 +10,14 @@
 
 #define MILLIS_PER_MIN 60000.0 //1000 millis/sec * 60 sec/min
 
-
+enum Command{
+    NONE,
+    PWM_DIRECT,
+    POS_PID,
+    VEL_PID,
+    PID_VARS_POS_ALL,
+    PID_VARS_VEL_ALL
+};
 
 class Motor{
     public:
@@ -35,7 +42,7 @@ class Motor{
         float getVelocity();
 
 
-        float pid_position(int setpoint);
+        int pid_position(int setpoint);
         float pid_velocity(float setpoint);
 
         void pid_position_setpoint();
@@ -99,23 +106,13 @@ class Motor{
 
 class Message_Parser{
     public:
-
-        enum Command{
-           NONE,
-           PWM_DIRECT,
-           POS_PID,
-           VEL_PID,
-           PID_VARS_POS_ALL,
-           PID_VARS_VEL_ALL
-        };
-
         struct Comm_Data{
             Command command = NONE;
 
             String rx_str;
-            StaticJsonDocument<512> rx_json;
+            StaticJsonDocument<1024> rx_json;
             String tx_str;
-            StaticJsonDocument<512> tx_json;
+            StaticJsonDocument<1024> tx_json;
 
             float kP_pos[4]; //For each motor
             float kI_pos[4];
@@ -135,7 +132,7 @@ class Message_Parser{
 
 class MotorController : private Message_Parser {
     public:
-        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3, Message_Parser::Comm_Data& data);
+        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3);
         size_t addMotor(Motor &motor); //Adds motor to motors vector returns size of motors vector
         void initAllMotors();
         void enableAllMotors();
@@ -175,10 +172,10 @@ class MotorController : private Message_Parser {
 
 class Serial_Comms : private Message_Parser{
     public:
-            Serial_Comms(int baudrate, float timeout, Message_Parser::Comm_Data& data);
+            Serial_Comms(int baudrate, float timeout);
             void init();
-            void check_for_data();
-            void send_feedback_data();
+            void check_for_data(Serial_Comms::Comm_Data& data);
+            void send_feedback_data(Message_Parser::Comm_Data& data);
 
     private:
             Message_Parser::Comm_Data _data;

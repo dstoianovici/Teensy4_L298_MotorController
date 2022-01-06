@@ -32,9 +32,24 @@ def main():
         # print("Response:" + comms.get_response())
         # time.sleep(0.5)
 
-        comms.send_vel_goal(100,0,100,100)
+        comms.send_vel_goal(100,100,100,100)
         print("Response:" + comms.get_response())
-        time.sleep(0.5)
+        time.sleep(0.25)
+
+
+        # comms.send_vel_goal(0,0,0,0)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
+
+        # comms.send_vel_goal(-100,-100,-100,-100)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
+
+        # comms.send_vel_goal(0,0,0,0)
+        # print("Response:" + comms.get_response())
+        # time.sleep(0.5)
+
+
 
         
 
