@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>598</height>
+    <width>1010</width>
+    <height>637</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>20</y>
+      <x>420</x>
+      <y>30</y>
       <width>211</width>
       <height>31</height>
      </rect>
@@ -35,9 +35,9 @@
    <widget class="PlotWidget" name="responsePlot">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>60</y>
-      <width>571</width>
+      <x>150</x>
+      <y>70</y>
+      <width>711</width>
       <height>371</height>
      </rect>
     </property>
@@ -45,8 +45,8 @@
    <widget class="QPushButton" name="portConnect">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>80</y>
+      <x>10</x>
+      <y>470</y>
       <width>141</width>
       <height>25</height>
      </rect>
@@ -55,13 +55,89 @@
      <string>Connect to Port</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="send_commandButton">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>500</y>
+      <width>141</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Send Command</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>550</y>
+      <width>181</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Select Command Type</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PWM</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PID Position</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PID Velocity</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PID Vars POS</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>PID Vars VEL</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>540</y>
+      <width>141</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop Motors</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>459</y>
+      <width>611</width>
+      <height>121</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1010</width>
      <height>22</height>
     </rect>
    </property>

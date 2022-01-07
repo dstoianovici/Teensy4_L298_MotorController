@@ -1,15 +1,26 @@
+from json.decoder import JSONDecoder
 import serial
 import json
 import time
 
-class serial_communicator:
+class open_motor:
 
-    def __init__(self,port, baudRate, _timeout):
-        self.ser = serial.Serial(port, baudRate, timeout = _timeout)
+    def __init__(self):
+        self.ser = serial.Serial()
         self.pos_pid_msg = {}
         self.vel_pid_msg = {}
         self.pid_config_msg = {}
         self.msg_data = {}
+        self._port = None
+        self._baudrate = None
+        self._timeout = None
+
+    def init_serial_port(self, port, baudRate, timeout):
+        self._port = port
+        self._baudrate = baudRate
+        self._timeout = timeout
+        self.ser = serial.Serial(self._port, self._baudrate, timeout=self._timeout)
+
 
     def send_pwm_goal(self,pwm0,pwm1,pwm2,pwm3):
         self.msg_data["command"] = "pwm_direct"
@@ -50,6 +61,12 @@ class serial_communicator:
         self.ser.flushInput()
         data = self.ser.readline().decode("utf-8")
         return data
+
+    def get_response_json(self):
+        data = self.get_response()
+        json_data = json.loads(data)
+        print(str(json_data))
+        return json_data
 
     def isOpen(self):
        return self.ser.is_open
