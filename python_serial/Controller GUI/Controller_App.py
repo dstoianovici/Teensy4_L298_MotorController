@@ -101,7 +101,8 @@ class Main_Window(QMainWindow):
 
     def connectButtons(self):
         self.portConnect_Button.clicked.connect(self.serial_connect)
-        self.sendCommand_Button.clicked.connect(self.motors.get_response_json)
+        self.sendCommand_Button.clicked.connect(self.send_command)
+        self.stop_Button.clicked.connect(self.stop_motors_command)
 
     def find_connected_ports(self):
         ports = []
@@ -125,6 +126,8 @@ class Main_Window(QMainWindow):
             self.motors.init_serial_port(self._port,self._baudrate,self._timeout)
         else:
             print("Incorrect Port or Baudrate")
+
+        self.update_plot_data()
         # print(self.motors.ser.isOpen())
 
     # def connect_signals_slots(self):
@@ -161,18 +164,18 @@ class Main_Window(QMainWindow):
                 data.pop(0)
 
     def set_command_type(self):
-        command_type = self.commandType_comboBox.currentText()
+        self._command_type = self.commandType_comboBox.currentText()
         
-        if command_type == "Select Command Type":
+        if  self._command_type == "Select Command Type":
             self.param_stackedWidget.setCurrentIndex(0)
         
-        elif command_type == "PWM":
+        elif  self._command_type == "PWM":
             self.param_stackedWidget.setCurrentIndex(1)
 
-        elif command_type == "PID Position":
+        elif self._command_type == "PID Position":
             self.param_stackedWidget.setCurrentIndex(2)
 
-        elif command_type == "PID Velocity":
+        elif  self._command_type == "PID Velocity":
             self.param_stackedWidget.setCurrentIndex(3)
         
         else:
@@ -187,15 +190,43 @@ class Main_Window(QMainWindow):
             self.vel2_line.clear()
             self.vel3_line.clear()
 
-
-        
         elif(self._graph_type == "Velocity Graph"):
             self.pos0_line.clear()
             self.pos1_line.clear()
             self.pos2_line.clear()
             self.pos3_line.clear()
-           
-            
+
+    def send_command(self):
+        if  self._command_type == "Select Command Type":
+            print("No Command")
+        
+        elif  self._command_type == "PWM":
+            pwm0 = self.pwm_spinBox_0.value()
+            pwm1 = self.pwm_spinBox_1.value()
+            pwm2 = self.pwm_spinBox_2.value()
+            pwm3 = self.pwm_spinBox_3.value()
+            self.motors.send_pwm_goal(pwm0,pwm1,pwm2,pwm3)
+
+        elif self._command_type == "PID Position":
+            pos0 = self.pid_pos_spinBox_0.value()
+            pos1 = self.pid_pos_spinBox_1.value()
+            pos2 = self.pid_pos_spinBox_2.value()
+            pos3 = self.pid_pos_spinBox_3.value()
+            self.motors.send_pos_goal(pos0,pos1,pos2,pos3)
+
+
+        elif  self._command_type == "PID Velocity":
+            vel0 = self.pid_vel_spinBox_0.value()
+            vel1 = self.pid_vel_spinBox_1.value()
+            vel2 = self.pid_vel_spinBox_2.value()
+            vel3 = self.pid_vel_spinBox_3.value()
+            self.motors.send_vel_goal(vel0,vel1,vel2,vel3)
+        
+        else:
+            print("No Command")           
+        
+    def stop_motors_command(self):
+        self.motors.send_pwm_goal(0,0,0,0)
 
         
 if __name__ == "__main__":
