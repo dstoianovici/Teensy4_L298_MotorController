@@ -29,10 +29,16 @@ class Main_Window(QMainWindow):
         self._baudrate = None
         self._timeout = 0.5
         self.motors = open_motor()
+        self._command_type = None
+
+        self._graph_type = "Position"
 
         self.open_ports = self.find_connected_ports()
-        self.fillPortMenu(self.open_ports)
-        self.connectBaudrateMenu()
+        self.fillPort_comboBox(self.open_ports)
+
+        self.commandType_comboBox.currentIndexChanged.connect(self.set_command_type)
+        self.graph_comboBox.currentIndexChanged.connect(self.set_graph_type)
+
         self.connectButtons()
         
 
@@ -61,6 +67,10 @@ class Main_Window(QMainWindow):
         self.pos2_line = self.responsePlot.plot(name="pos2", pen=(3,4))
         self.pos3_line = self.responsePlot.plot(name="pos3", pen=(4,4))
 
+        self.vel0_line = self.responsePlot.plot(name="vel0", pen=(1,4))
+        self.vel1_line = self.responsePlot.plot(name="vel1", pen=(2,4))
+        self.vel2_line = self.responsePlot.plot(name="vel2", pen=(3,4))
+        self.vel3_line = self.responsePlot.plot(name="vel3", pen=(4,4))
 
         self.timer = QtCore.QTimer()
         self.timer.setInterval(50)
@@ -74,6 +84,9 @@ class Main_Window(QMainWindow):
         for port in ports:
             self.menuPort.addAction(port).triggered.connect(lambda:self.select_port(port))
 
+    def fillPort_comboBox(self,ports):
+        for port in ports:
+            self.port_comboBox.addItem(port)
 
     def connectBaudrateMenu(self):
         self.action115200.triggered.connect(lambda:self.select_baudrate(115200))
@@ -85,9 +98,10 @@ class Main_Window(QMainWindow):
         self.action2400.triggered.connect(lambda:self.select_baudrate(2400))
         self.action1200.triggered.connect(lambda:self.select_baudrate(1200))
 
+
     def connectButtons(self):
-        self.portConnect.clicked.connect(self.serial_connect)
-        self.send_commandButton.clicked.connect(self.motors.get_response_json)
+        self.portConnect_Button.clicked.connect(self.serial_connect)
+        self.sendCommand_Button.clicked.connect(self.motors.get_response_json)
 
     def find_connected_ports(self):
         ports = []
@@ -105,13 +119,18 @@ class Main_Window(QMainWindow):
         print(self._baudrate)
 
     def serial_connect(self):
-        self.motors.init_serial_port(self._port,self._baudrate,self._timeout)
-        print(self.motors.ser.isOpen())
+        self._port = self.port_comboBox.currentText()
+        self._baudrate = self.baud_comboBox.currentText()
+        if((self._port != "Port" and self._baudrate != "Baudrate")):
+            self.motors.init_serial_port(self._port,self._baudrate,self._timeout)
+        else:
+            print("Incorrect Port or Baudrate")
+        # print(self.motors.ser.isOpen())
 
     # def connect_signals_slots(self):
 
     def update_plot_data(self):
-        # if(self.motors.ser.is_open()):
+        if(self.motors.ser.isOpen()):
             rx_data = self.motors.get_response_json()
             self.pos0_data.append(rx_data['pos0'])
             self.pos1_data.append(rx_data['pos1'])
@@ -123,23 +142,62 @@ class Main_Window(QMainWindow):
             self.vel2_data.append(rx_data['vel2'])
             self.vel3_data.append(rx_data['vel3'])
 
-
-            if(len(self.pos0_data) > 100):
-                for data in self.data_array:
-                    data.pop(0)
-
-
-            
-
-            # self.timestamp_data.append("t")
-
+        if(self._graph_type == "Position Graph"):
             self.pos0_line.setData(self.pos0_data)
             self.pos1_line.setData(self.pos1_data)
             self.pos2_line.setData(self.pos2_data)
             self.pos3_line.setData(self.pos3_data)
+        
+        elif(self._graph_type == "Velocity Graph"):
+
+            self.vel0_line.setData(self.vel0_data)
+            self.vel1_line.setData(self.vel1_data)
+            self.vel2_line.setData(self.vel2_data)
+            self.vel3_line.setData(self.vel3_data)
+
+
+        if(len(self.pos0_data) > 100):
+            for data in self.data_array:
+                data.pop(0)
+
+    def set_command_type(self):
+        command_type = self.commandType_comboBox.currentText()
+        
+        if command_type == "Select Command Type":
+            self.param_stackedWidget.setCurrentIndex(0)
+        
+        elif command_type == "PWM":
+            self.param_stackedWidget.setCurrentIndex(1)
+
+        elif command_type == "PID Position":
+            self.param_stackedWidget.setCurrentIndex(2)
+
+        elif command_type == "PID Velocity":
+            self.param_stackedWidget.setCurrentIndex(3)
+        
+        else:
+            self.param_stackedWidget.setCurrentIndex(0)
+
+    def set_graph_type(self):
+        self._graph_type = self.graph_comboBox.currentText()
+        
+        if(self._graph_type == "Position Graph"):
+            self.vel0_line.clear()
+            self.vel1_line.clear()
+            self.vel2_line.clear()
+            self.vel3_line.clear()
+
 
         
+        elif(self._graph_type == "Velocity Graph"):
+            self.pos0_line.clear()
+            self.pos1_line.clear()
+            self.pos2_line.clear()
+            self.pos3_line.clear()
+           
+            
 
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = Main_Window()
