@@ -11,12 +11,13 @@
 baudRate = 115200
 port = "/dev/ttyACM0"
 
-import open_motor_serial
+from open_motor_serial import open_motor
 import json
 import serial
 import time
 
-comms = open_motor_serial.serial_communicator(port,baudRate,0.5)
+comms = open_motor()
+comms.init_serial_port(port,baudRate,0.5)
 
 def main():
     while True:
@@ -32,21 +33,35 @@ def main():
         # print("Response:" + comms.get_response())
         # time.sleep(0.5)
 
-        comms.send_pos_goal(100,100,100,100)
-        print("Response:" + comms.get_response())
-        time.sleep(1.5)
+        # comms.send_pos_goal(100,100,100,100)
+        comms.send_pwm_goal(100,100,-100,-100)
+        # data = comms.get_response()
 
-        comms.send_pos_goal(0,0,0,0)
-        print("Response:" + comms.get_response())
-        time.sleep(1.5)
+        # print(data)
 
-        comms.send_pos_goal(-100,-100,-100,-100)
-        print("Response:" + comms.get_response())
-        time.sleep(1.5)
+        # print("Response:" + data)
+        time.sleep(0.5)
 
-        comms.send_pos_goal(0,0,0,0)
-        print("Response:" + comms.get_response())
-        time.sleep(1.5)
+        comms.send_pwm_goal(-100,-100,100,100)
+        data = comms.get_response_json()
+
+        print(data['pos1'])
+        print(data['vel2'])
+
+        # print("Response:" + data)
+        time.sleep(0.5)
+
+        # comms.send_pos_goal(0,0,0,0)
+        # print("Response:" + comms.get_response())
+        # time.sleep(1.5)
+
+        # comms.send_pos_goal(-100,-100,-100,-100)
+        # print("Response:" + comms.get_response())
+        # time.sleep(1.5)
+
+        # comms.send_pos_goal(0,0,0,0)
+        # print("Response:" + comms.get_response())
+        # time.sleep(1.5)
 
         
 
