@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox,
 )
 from PyQt5.uic import loadUi
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 
 import re
 import subprocess
@@ -23,6 +23,7 @@ class Main_Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         loadUi("ui/Controller_GUI.ui",self)
+        self.setWindowIcon(QtGui.QIcon('ui/resources/mechD-Blue-green-logo.png'))
 
         #Members
         self._port = None
