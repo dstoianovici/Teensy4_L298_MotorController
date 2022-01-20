@@ -4,7 +4,7 @@ from PyQt5.uic.uiparser import QtCore
 from numpy.lib.function_base import append
 from pyqtgraph.widgets.PlotWidget import PlotWidget
 import serial.tools.list_ports as listPorts
-sys.path.append("../")
+sys.path.append("../src/open_motor/")
 from open_motor_serial import open_motor
 from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox,

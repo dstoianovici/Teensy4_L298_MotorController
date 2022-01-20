@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/python_serial"
+VIRTUAL_ENV="/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/python_serial/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

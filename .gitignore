@@ -2,3 +2,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+Teensy/.vscode
+Teensy/.pio
+python_serial/.venv

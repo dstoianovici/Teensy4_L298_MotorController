@@ -65,7 +65,6 @@ class open_motor:
     def get_response_json(self):
         data = self.get_response()
         json_data = json.loads(data)
-        print(str(json_data))
         return json_data
 
     def isOpen(self):

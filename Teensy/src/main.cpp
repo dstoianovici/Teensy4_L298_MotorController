@@ -45,20 +45,6 @@ MotorController motors(mot0,mot1,mot2,mot3);
 
 
 
-#ifdef ROS
-ros::NodeHandle nh;
-std_msgs::Int32 pos_fb;
-std_msgs::Float32 error_msg;
-
-void set_position_goal(const std_msgs::Int32& goal_msg){
-  goal_pos = goal_msg.data;
-  // mot0.setSetpoint((int)goal_msg.data);
-}
-
-ros::Subscriber<std_msgs::Int32> position_goal_sub("goal_pos", &set_position_goal);
-ros::Publisher enc_feedback_pub("enc_reading", &pos_fb);
-ros::Publisher error_string_pub("motor_output", &error_msg);
-#endif
 
 #ifdef SERIAL_COM
 Serial_Comms serial_comms(BAUD,TIMEOUT);
@@ -76,60 +62,25 @@ void setup() {
   #endif
 
 
-  #ifdef ROS
-
-    nh.getHardware()->setBaud(115200);
-    nh.initNode();
-    nh.subscribe(position_goal_sub);
-    nh.advertise(enc_feedback_pub);
-    nh.advertise(error_string_pub);
-  
-  #endif
-
-
-  // mot0.init_motor();
-  // mot0.enable_motor();
-  // mot0.setPID_vars_pos(1.0,0.0,0.0);
-  // mot0.setPIDUpdateRate(50);
-
-  // // mot1.init_motor();
-  // // mot1.enable_motor();
-
-  // mot2.init_motor();
-  // mot2.enable_motor();
-  // mot2.setPID_vars_vel(1.0,0.0,0.0);
-  // mot2.setPIDUpdateRate(50);
-  
-  // mot3.init_motor();
-  // mot3.enable_motor();
-  // mot3.setPID_vars_vel(1.0,0.0,0.0);
-  // mot3.setPIDUpdateRate(50);
-
-  // motors.initAllMotors();
-  // motors.enableAllMotors();
-  // motors.assignPIDupdate_all(50.0);
-  // motors.assignPIDvars_all_vel(1.0,0.0,0.0);
-  // motors.assignPIDvars_all_pos(1.0,0.0,0.0);
-
   mot0.init_motor();
   mot0.enable_motor();
-  mot0.setPID_vars_pos(1.0,0.20,0.0);
-  mot0.setPID_vars_vel(2.0,0.20,0.0);
+  mot0.setPID_vars_pos(1.0,0.00,0.0);
+  mot0.setPID_vars_vel(1.0,0.00,0.0);
 
   mot1.init_motor();
   mot1.enable_motor();
-  mot1.setPID_vars_pos(1.0,0.20,0.0);
-  mot1.setPID_vars_vel(2.0,0.20,0.0);
+  mot1.setPID_vars_pos(1.0,0.00,0.0);
+  mot1.setPID_vars_vel(1.0,0.00,0.0);
 
   mot2.init_motor();
   mot2.enable_motor();
-  mot2.setPID_vars_pos(1.0,0.20,0.0);
-  mot2.setPID_vars_vel(2.0,0.20,0.0);
+  mot2.setPID_vars_pos(1.0,0.0,0.0);
+  mot2.setPID_vars_vel(1.0,0.0,0.0);
 
   mot3.init_motor();
   mot3.enable_motor();
-  mot3.setPID_vars_pos(1.0,0.20,0.0);
-  mot3.setPID_vars_vel(2.0,0.20,0.0);
+  mot3.setPID_vars_pos(1.0,0.0,0.0);
+  mot3.setPID_vars_vel(1.0,0.0,0.0);
 
 
   
@@ -137,12 +88,6 @@ void setup() {
 
 void loop() {
 
-  #ifdef ROS
-    nh.spinOnce();
-    pos_fb.data = mot0.read_enc();
-    enc_feedback_pub.publish(&pos_fb);
-    error_string_pub.publish(&error_msg);
-  #endif
 
   #ifdef SERIAL_COM
 
