@@ -29,7 +29,7 @@ This board is supplied with a firmware allowing for 4 motor control out of the b
 - A working directory for your project to establish absolute file paths within the project. This is currently necessary as the open_motor library is not yet released as a pip package
 - Clone this github repo in your working directory
 
-#### Setting up Teensy
+### Setting up Teensy
 Open the '/open_motor/Teensy' directory in VS Code. Here you press the upload button at the bottom of the IDE, or from the PlatformIO extension tab. This will flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing a specific teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly. 
 
 ### Setting up the Linux side Python 
