@@ -1,7 +1,7 @@
 # open_motor
-This repo provides an open source motor controller library, with control inputs availble via Python and is adaptable to many hardware control schemes. The library is used to  on a teensy4.0 using a Teensy4 Motor Shield. 
+This repo provides an open source motor controller library, with control inputs availble via Python and is adaptable to many hardware control schemes. The library is used to  on a teensy4.0 using a Teensy4 Motor Shield. **This repo is under rapid development, so check back for updates frequently, and submit all issues!**
 
-This Teensy4 Motor shield incoroporates 2x L298N motor driver ICs, 4 encoder inputs, and 4 current measurement circuits allowing for control of 4 DC motors. The firmware and accompanying command code provided here allows for direct integration into robotics projects to get protoypes running quickly.
+This Teensy4 Motor shield incoroporates 2x L298N motor driver ICs, 4 encoder inputs, and 4 current measurement circuits allowing for control of 4 DC motors. The firmware and accompanying command code provided here allows for direct integration into robotics projects to get prototypes running quickly.
 
 This repo serves as documentation for the motor controller library as well as documentation for the hardware.
 
@@ -30,17 +30,21 @@ This board is supplied with a firmware allowing for 4 motor control out of the b
 - Clone this github repo in your working directory
 
 #### Setting up Teensy
-Open the '/open_motor/Teensy' directory in VS Code. Here you press the upload button at the bottom of the IDE, or from the PlatformIO extension tab. This will flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing a specific teensy, then the board may need to be flashed from the Arduino IDE as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading.
-
-
+Open the '/open_motor/Teensy' directory in VS Code. Here you press the upload button at the bottom of the IDE, or from the PlatformIO extension tab. This will flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing a specific teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly. 
 
 ### Setting up the Linux side Python 
-Please clone this repo into your working directory and run
+To test the setup navigate to your 'open_motor/python_serial' and run the command
+
+      source venv/bin/activate
+  
+which will load a python venv configured for the open_motor package. From here you may inspect and run sample code from the '/examples' directory as well running a beta version of the motor tuning software in '/Controller_GUI'. 
+
+
+The open_motor python library is located in 'open_motor/python_serial/src/open_motor'. To use this library in your projects please copy 'open_motor_serial.py' into your working directory, or link back to the original install location as done with 'sys.path' in the examples using an absolute path from the working directory of your code. This is a temporary solution as the package is not yet prepared for pip distribution.
 
 
 
-
-#### Python
+<!-- #### Python  -->
   
   
 <!-- #### ROS
