@@ -5,3 +5,4 @@
 Teensy/.vscode
 Teensy/.pio
 python_serial/venv
+*.pyc
