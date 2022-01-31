@@ -4,4 +4,4 @@
 .vscode/ipch
 Teensy/.vscode
 Teensy/.pio
-python_serial/.venv
+python_serial/venv
