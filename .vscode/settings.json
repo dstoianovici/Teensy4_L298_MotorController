@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./python_serial/src/open_motor"
+    ]
+}
