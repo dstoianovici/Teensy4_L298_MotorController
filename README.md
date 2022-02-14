@@ -19,24 +19,30 @@ This repo serves as documentation for the motor controller library as well as do
 - Custom UDEV rules and USB parameters for automatic port connection (Linux)
 
 ## Wiring
-The Teensy4.0 Motor Controller v1.1 provides 4 motor outputs, 4 encoder inputs, power input, and headers to plug in the Teensy4.0. Each motor block, 0-3, is outlined on the screen print of the board and contains the motor output screw terminals, the encoder pin inputs, and the 4 flyback diodes that enable motor direction. Motor leads can be connected to the boards using the screw terminals and the corresponding encoder is plugged into the vertical pins behind it. Please use the boards screen print and the diagram shown in the **Board Dimensions** section. 
+The Teensy4.0 Motor Controller v1.1 provides 4 motor outputs, 4 encoder inputs, power input, and headers to plug in the Teensy4.0.
+Each motor block, 0-3, is outlined on the screen print of the board and contains the motor output screw terminals, the encoder pin inputs, and the 4 flyback diodes that enable motor direction. Motor leads can be connected to the boards using the screw terminals and the corresponding encoder is plugged into the vertical pins behind it. Please use the boards screen print and the diagram shown in the **Board Dimensions** section for reference.
 
-The next step is to plug in the Teensy4.0 into the female headers, and then the power input, VS and GND to the right of the Teensy Headers, can be wired. It is important to have an independent power switch for the power input as the power to the motor controller must be turned on after the Teensy microcontroller has been powered up, this power switch can even be a relay connected to the host computer allowing programatic switching of motor power. **It is imperative that power be provided to the Teensy4.0 via USB before power is given to VS or the board will burn** this is because the Teensy's 3.3V output is used as a reference for the level shifters that allow 5V encoders to be read by the 3.3V logic Teensy.
-
+The next step is to plug in the Teensy4.0 into the female headers, and then the power input, VS and GND to the right of the Teensy Headers, can be wired. It is important to have an independent power switch for the power input as the power to the motor controller must be turned on after the microcontroller has been powered up, this power switch can even be a relay connected to the host computer allowing programatic switching of motor power. **It is imperative that power be provided to the Teensy4.0 via USB before power is given to VS or the level shifters will burn** this is because the Teensy's 3.3V output is used as a reference for the level shifters that allow 5V encoders to be read by the 3.3V logic Teensy.
 
 ## Installation and Configuration
 <!-- This board is supplied with a firmware allowing for 4 motor control out of the box. Using the available serial package and Teensy Board firmware, motor control and communication is available of out the box. -->
 
 ### ROS
+#### Requirements
 These instructions assume you already are familiar with ROS and Ubuntu Bash. Furthermore, this system has been developed for ROS1 Melodic, any other distros are not yet tested.
+To use ROS, please clone this repo from the ROS branch, or clone the whole project and checkout the ROS branch. 
 
+#### Setting up ROS
 First, ensure that rosserial is installed on you system, if not install using
 
         sudo apt-get install ros-melodic-rosserial
         
-or to test another distro please use
+Next, copy the directory `open_motor/ROS/open_motor_msgs` from this repo into `your_catkin_ws/src`. From here we can run `catkin_make` to compile the ROS messages for 'open_motor'.
 
-        sudo apt-get install ros-<your distro>-rosserial
+With these steps the ROS setup is complete and these messages can now be used to communicate with the ROS node on the Teensy.
+
+#### Setting up the Teensy
+
       
 
 ### Python
