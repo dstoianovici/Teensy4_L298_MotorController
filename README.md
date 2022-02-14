@@ -24,7 +24,7 @@ Each motor block, 0-3, is outlined on the screen print of the board and contains
 
 The next step is to plug in the Teensy4.0 into the female headers, and then the power input, VS and GND to the right of the Teensy Headers, can be wired. It is important to have an independent power switch for the power input as the power to the motor controller must be turned on after the microcontroller has been powered up, this power switch can even be a relay connected to the host computer allowing programatic switching of motor power. **It is imperative that power be provided to the Teensy4.0 via USB before power is given to VS or the level shifters will burn** this is because the Teensy's 3.3V output is used as a reference for the level shifters that allow 5V encoders to be read by the 3.3V logic Teensy.
 
-## Installation
+## Installation and Configuration
 <!-- This board is supplied with a firmware allowing for 4 motor control out of the box. Using the available serial package and Teensy Board firmware, motor control and communication is available of out the box. -->
 
 ### ROS
