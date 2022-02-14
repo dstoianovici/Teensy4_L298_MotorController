@@ -10,8 +10,10 @@ This repo serves as documentation for the motor controller library as well as do
 ![MotorController](https://user-images.githubusercontent.com/26233185/141203471-50df6b40-a233-4334-bb6f-87546810c80e.jpg)
 
 ### Features
-- ROS Control with custom messages using Ros Serial on ROS-Melodic
-- Dynamic PID tuning for each motor 
+- Control interface with ROS using custom messages and rosserial
+- Control interface through Python3
+- Dynamic PID tuning for each motor
+- PID Tuning GUI (python only at the moment)
 - Position and Velocity Control
 - Abstracted Motor Controller Library
 - Custom UDEV rules and USB parameters for automatic port connection (Linux)
@@ -25,7 +27,7 @@ The next step is to plug in the Teensy4.0 into the female headers, and then the 
 ## Installation
 This board is supplied with a firmware allowing for 4 motor control out of the box. Using the available serial package and Teensy Board firmware, motor control and communication is available of out the box.
 
-#### Python
+## Python
 ### Requirements
 - python3 to send commands
 - VS Code with PlatformIO extension installed to compile and upload teensy code
@@ -46,7 +48,7 @@ which will load a python venv configured for the open_motor package. From here y
 The open_motor python library is located in 'open_motor/python_serial/src/open_motor'. To use this library in your projects please copy 'open_motor_serial.py' into your working directory, or link back to the original install location as done with 'sys.path' in the examples using an absolute path from the working directory of your code. This is a temporary solution as the package is not yet prepared for pip distribution.
 
   
-#### ROS
+## ROS
 These instructions assume you already are familiar with ROS and Ubuntu Bash. Furthermore, this system has been developed for ROS1 Melodic, any other distros are not yet tested.
 
 First, ensure that rosserial is installed on you system, if not install using
