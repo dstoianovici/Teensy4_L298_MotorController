@@ -28,7 +28,7 @@ The next step is to plug in the Teensy4.0 into the female headers, and then the 
 <!-- This board is supplied with a firmware allowing for 4 motor control out of the box. Using the available serial package and Teensy Board firmware, motor control and communication is available of out the box. -->
 
 ### Setting up the Teensy
-Open the '/open_motor/Teensy' directory in VS Code and switch to the ROS or PYTHON respectively to upload the correct firmware for your needs. Next, use PlatformIO Build to flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing your teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly.
+Open the `/open_motor/Teensy` directory in VS Code and switch to the ROS or PYTHON respectively to upload the correct firmware for your needs. Next, use PlatformIO Build to flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing your teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly.
 
 ### ROS
 #### Requirements
@@ -44,7 +44,7 @@ Next, copy the directory `open_motor/ROS/open_motor_msgs` from this repo into `y
 
 With these steps the ROS setup is complete and these messages can now be used to communicate with the ROS node on the Teensy.
 
-To test your setup start a roscore and run:
+To test your setup start a `roscore` and run:
 
         rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0 _baud:=115200
 
