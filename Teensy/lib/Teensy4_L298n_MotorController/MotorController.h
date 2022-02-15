@@ -467,6 +467,7 @@ class ROS_Comms : private Message_Parser{
         open_motor_msgs::feedback feedback;
 
         ROS_Comms(int baudrate);
+        
         void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg);
         void pid_config_callback(const open_motor_msgs::pid_config pid_vars);
 
