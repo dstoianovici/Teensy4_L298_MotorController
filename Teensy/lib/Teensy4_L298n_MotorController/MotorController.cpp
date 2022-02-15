@@ -1,7 +1,7 @@
 #include <MotorController.h>
 
 
-//Explicit Constructor
+
 Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rot) : encoder(encA,encB){
     _EN = EN;
     _PWM1 = PWM1;
@@ -13,6 +13,34 @@ Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ti
     _enc_count = 0;
     _previousTimeUpdate = 0;
 }
+
+Motor::Motor(motor_struct motor){
+    encoder(motor.encA,motor.encB);
+    _EN = motor.EN;
+    _PWM1 = motor.PWM1;
+    _PWM2 = motor.PWM2;
+    _SENSE = motor.SENSE;
+
+    _ticks_per_rot = motor.ticks_per_rot;   
+
+    _enc_count = 0;
+    _previousTimeUpdate = 0;
+}
+
+Motor::Motor(motor_struct motor){
+    encoder(motor.encA,motor.encB);
+    _EN = motor.EN;
+    _PWM1 = motor.PWM1;
+    _PWM2 = motor.PWM2;
+    _SENSE = motor.SENSE;
+
+    _ticks_per_rot = motor.ticks_per_rot;   
+
+    _enc_count = 0;
+    _previousTimeUpdate = 0;
+}
+
+~Motor::Motor();
 
 void Motor::init_motor(){
     pinMode(_EN,OUTPUT);
@@ -203,7 +231,6 @@ void Motor::assignSetpoint_vel(float setpoint){
     _setpoint_vel = setpoint;
 }
 
-
 void Motor::pid_position_setpoint(){
 _currentTime = millis();
   int position = read_enc();
@@ -231,7 +258,6 @@ _currentTime = millis();
     drive_motor(0);
   }
 }
-
 
 float Motor::pid_velocity_setpoint(){
   _currentTime = millis();
@@ -268,7 +294,6 @@ float Motor::pid_velocity_setpoint(){
 
 
 
-
 ///////////////////Motor Controller///////////////////
 MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3){
             addMotor(mot0);
@@ -280,6 +305,11 @@ MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &m
 size_t MotorController::addMotor(Motor &motor){
     motors.push_back(motor);
     return motors.size();
+}
+
+size_t MotorController::addMotor(motor_struct motor){
+  Motor _motor(motor);
+  motors.push_back(_motor);
 }
 
 void MotorController::initAllMotors(){
@@ -340,8 +370,8 @@ void MotorController::assignSetpoints_pos(int setpoints[4]){
     }
 }
 
-void MotorController::assignPIDupdate_all(float freq){
-    _pid_update_freq = freq;
+void MotorController::assignPIDupdate_all(float millis){
+    _pid_update_freq = millis;
 }
 
 void MotorController::updatePID_pos(){
@@ -355,7 +385,6 @@ void MotorController::updatePID_vel(){
         run_pid_vel_all();
     }
 }
-
 
 int MotorController::numMotors(){
     return motors.size();
@@ -435,11 +464,6 @@ void MotorController::prepare_feedback_data(){
 
 
 
-
-
-
-
-
 /////////////////Communicators///////////////////////////
 Serial_Comms::Serial_Comms(int baudrate, float timeout){
     _baudrate = baudrate;
@@ -450,7 +474,6 @@ void Serial_Comms::init(){
     Serial.begin(_baudrate);
     Serial.setTimeout(_timeout);
 }
-
 
 void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
     if (Serial.available() > 0){
@@ -527,16 +550,27 @@ void Serial_Comms::send_feedback_data(Message_Parser::Comm_Data& data){
 }
 
 
-
-
-// ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
-//     _baudrate = baudrate;
-//     _nh = nh;
+ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
+    _baudrate = baudrate;
+    _nh = nh;
     
-//     _nh.getHardware()->setBaud(115200);
-//     _nh.initNode();
-//     _nh.subscribe(_pid_config_sub);
-//     _nh.subscribe(_setpoints_sub);
-//     _nh.advertise(_feedback_pub);
+    _nh.getHardware()->setBaud(115200);
+    _nh.initNode();
+    _nh.subscribe(_pid_config_sub);
+    _nh.subscribe(_setpoints_sub);
+    _nh.advertise(_feedback_pub);
 
-// }
+}
+
+void ROS_Comms::setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
+  goal_pos = setpoint_msg.position_setpoint[0];
+  goal_vel = setpoint_msg.velocity_setpoint[0];
+}
+
+void ROS_Comms::pid_config_callback(const open_motor_msgs::pid_config pid_vars){
+  if(pid_vars.update == true){
+    mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
+    mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
+    mot0.setPIDUpdateRate(pid_vars.pid_update_position);
+  }
+}

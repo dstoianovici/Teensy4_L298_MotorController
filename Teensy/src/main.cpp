@@ -5,174 +5,88 @@
  * 
  *  ROS Enabled Motor Controller for Teensy4.0 Motor Controller Board
  * 
-
- REQUIREMENTS
- - Use FreeRTOS
- - Schedule Task for each of following functions
-    - Position Measurement
-    - Velocity Calculation
-    - Acceleration Calculation
-    - Current Measurement and Calculation 
-    - Recieve Custom ROS Message to 
-
 **/
 
 
 #include <MotorController_Pins.h>
 #include <MotorController.h>
 
-#define SERIAL_COM
 
-#define GEAR_RATIO 20
-#define COUNT_PER_ROT_ENC 12
-#define COUNT_PER_ROT GEAR_RATIO*COUNT_PER_ROT_ENC
+#define GEAR_RATIO 131.0
+#define COUNT_PER_ROT_ENC 16.0
+#define COUNT_PER_ROT GEAR_RATIO * COUNT_PER_ROT_ENC
 
-#define BAUD 115200
-#define TIMEOUT 0.5
+// Communicator::Comm_Data comm_msg;
 
-Message_Parser::Comm_Data comm_data;
+Motor::motor_struct mot0{MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT};
+Motor::motor_struct mot1{MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE1,ENC1_A,ENC1_B,COUNT_PER_ROT};
+Motor::motor_struct mot2{MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE2,ENC2_A,ENC2_B,COUNT_PER_ROT};
+Motor::motor_struct mot3{MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_PER_ROT};
 
-
-Motor mot0(MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B, COUNT_PER_ROT);
-Motor mot1(MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE0,ENC1_A,ENC1_B, COUNT_PER_ROT); 
-Motor mot2(MOT2_EN,MOT2_PWM1,MOT2_PWM2,SENSE0,ENC2_A,ENC2_B, COUNT_PER_ROT); 
-Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT);
-
-MotorController motors(mot0,mot1,mot2,mot3);
+MotorController motor_controller;
 
 
+void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
+  goal_pos = setpoint_msg.position_setpoint[0];
+  goal_vel = setpoint_msg.velocity_setpoint[0];
+}
 
+void pid_config_callback(const open_motor_msgs::pid_config pid_vars){
+  if(pid_vars.update == true){
+    mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
+    mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
+    mot0.setPIDUpdateRate(pid_vars.pid_update_position);
+  }
+}
 
-
-
-
-#ifdef SERIAL_COM
-Serial_Comms serial_comms(BAUD,TIMEOUT);
-#endif
-
+ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints",&setpoint_callback);
+ros::Subscriber<open_motor_msgs::pid_config> pid_config_sub("open_motor_pid_config",&pid_config_callback);
+ros::Publisher feedback_pub("open_motor_feedback", &feedback);
 
 
 void setup() {
+  motor_controller();
+  motor_controller.addMotor(mot0);
+  motor_controller.addMotor(mot1);
+  motor_controller.addMotor(mot2);
+  motor_controller.addMotor(mot3);
 
-  #ifdef SERIAL_COM
+  nh.getHardware()->setBaud(115200);
+  nh.initNode();
+  nh.subscribe(pid_config_sub);
+  nh.subscribe(setpoints_sub);
+  nh.advertise(feedback_pub);
 
-    serial_comms.init();
-
-    
-  #endif
 
 
   mot0.init_motor();
   mot0.enable_motor();
-  mot0.setPID_vars_pos(1.0,0.00,0.0);
-  mot0.setPID_vars_vel(1.0,0.00,0.0);
 
-  mot1.init_motor();
-  mot1.enable_motor();
-  mot1.setPID_vars_pos(1.0,0.00,0.0);
-  mot1.setPID_vars_vel(1.0,0.00,0.0);
+  // mot0.setPIDUpdateRate(15);
+  mot0.setPID_vars_pos(1.25, 0.03, 0.0);  
+  mot0.setPID_vars_vel(1.0, 0.15, 0.0075);
 
-  mot2.init_motor();
-  mot2.enable_motor();
-  mot2.setPID_vars_pos(1.0,0.0,0.0);
-  mot2.setPID_vars_vel(1.0,0.0,0.0);
+  for(int i = 0; i<4; i++){
+    feedback.position[i] = 0;
+    feedback.velocity[i] = 0;
+  }
 
-  mot3.init_motor();
-  mot3.enable_motor();
-  mot3.setPID_vars_pos(1.0,0.0,0.0);
-  mot3.setPID_vars_vel(1.0,0.0,0.0);
-
-
-  
 }
 
 void loop() {
 
+  nh.spinOnce();
 
-  #ifdef SERIAL_COM
+  
+  // mot0.drive_motor(goal_pos);
+  // velocity_msg.data = mot0.getVelocity();
 
-  serial_comms.check_for_data(comm_data);
- 
-  switch(comm_data.command){
-      default:
-        break;
+  // error_msg =  mot0.pid_position(goal_pos);
+  feedback.velocity[0] = mot0.pid_velocity(goal_vel);
+  feedback.position[0] = mot0.read_enc();
 
-      case NONE:
+  feedback_pub.publish(&feedback);
 
-        mot0.drive_motor(0);
-        mot1.drive_motor(0);
-        mot2.drive_motor(0);
-        mot3.drive_motor(0);
+  delay(5);
 
-        comm_data.pos_feedback[0] = mot0.read_enc();
-        comm_data.pos_feedback[1] = mot1.read_enc();
-        comm_data.pos_feedback[2] = mot2.read_enc();
-        comm_data.pos_feedback[3] = mot3.read_enc();
-
-        comm_data.velocity_feedback[0] = mot0.getVelocity();
-        comm_data.velocity_feedback[1] = mot1.getVelocity();
-        comm_data.velocity_feedback[2] = mot2.getVelocity();
-        comm_data.velocity_feedback[3] = mot3.getVelocity();
-
-        break;
-
-      case PWM_DIRECT:
-
-        mot0.drive_motor(comm_data.goal_pwm[0]);
-        mot1.drive_motor(comm_data.goal_pwm[1]);
-        mot2.drive_motor(comm_data.goal_pwm[2]);
-        mot3.drive_motor(comm_data.goal_pwm[3]);
-
-        comm_data.pos_feedback[0] = mot0.read_enc();
-        comm_data.pos_feedback[1] = mot1.read_enc();
-        comm_data.pos_feedback[2] = mot2.read_enc();
-        comm_data.pos_feedback[3] = mot3.read_enc();
-
-        comm_data.velocity_feedback[0] = mot0.getVelocity();
-        comm_data.velocity_feedback[1] = mot1.getVelocity();
-        comm_data.velocity_feedback[2] = mot2.getVelocity();
-        comm_data.velocity_feedback[3] = mot3.getVelocity();
-
-        break;
-
-      case POS_PID:
-
-        comm_data.velocity_feedback[0] = mot0.getVelocity();
-        comm_data.velocity_feedback[1] = mot1.getVelocity();
-        comm_data.velocity_feedback[2] = mot2.getVelocity();
-        comm_data.velocity_feedback[3] = mot3.getVelocity();
-
-
-
-        comm_data.pos_feedback[0] = mot0.pid_position(comm_data.goal_position[0]);
-        comm_data.pos_feedback[1] = mot1.pid_position(comm_data.goal_position[1]);
-        comm_data.pos_feedback[2] = mot2.pid_position(comm_data.goal_position[2]);
-        comm_data.pos_feedback[3] = mot3.pid_position(comm_data.goal_position[3]);
-
-        break;
-      
-      case VEL_PID:
-
-        comm_data.pos_feedback[0] = mot0.read_enc();
-        comm_data.pos_feedback[1] = mot1.read_enc();
-        comm_data.pos_feedback[2] = mot2.read_enc();
-        comm_data.pos_feedback[3] = mot3.read_enc();
-
-        comm_data.velocity_feedback[0] = mot0.pid_velocity(comm_data.goal_velocity[0]);
-        comm_data.velocity_feedback[1] = mot1.pid_velocity(comm_data.goal_velocity[1]);
-        comm_data.velocity_feedback[2] = mot2.pid_velocity(comm_data.goal_velocity[2]);
-        comm_data.velocity_feedback[3] = mot3.pid_velocity(comm_data.goal_velocity[3]);
-
-        break;
-  }
-
-  serial_comms.send_feedback_data(comm_data);
-
-
-
-  delay(150);
 }
-
-
-
-  #endif
