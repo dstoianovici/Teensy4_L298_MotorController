@@ -14,39 +14,26 @@ Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ti
     _previousTimeUpdate = 0;
 }
 
-Motor::Motor(motor_struct motor){
-    encoder(motor.encA,motor.encB);
+
+Motor::Motor(motor_struct motor) : encoder(motor.encA,motor.encB){
     _EN = motor.EN;
     _PWM1 = motor.PWM1;
     _PWM2 = motor.PWM2;
     _SENSE = motor.SENSE;
 
-    _ticks_per_rot = motor.ticks_per_rot;   
+    _ticks_per_rot = motor.ticks_per_rotation;   
 
     _enc_count = 0;
     _previousTimeUpdate = 0;
 }
 
-Motor::Motor(motor_struct motor){
-    encoder(motor.encA,motor.encB);
-    _EN = motor.EN;
-    _PWM1 = motor.PWM1;
-    _PWM2 = motor.PWM2;
-    _SENSE = motor.SENSE;
-
-    _ticks_per_rot = motor.ticks_per_rot;   
-
-    _enc_count = 0;
-    _previousTimeUpdate = 0;
-}
-
-~Motor::Motor();
+Motor::~Motor(){}
 
 void Motor::init_motor(){
     pinMode(_EN,OUTPUT);
     pinMode(_PWM1,OUTPUT);
     pinMode(_PWM2,OUTPUT);
-    //pinMode(_SENSE,INPUT); //V1.0 has incorrectly setup OP-AMP circuit
+    pinMode(_SENSE,INPUT); 
 }
 
 void Motor::drive_motor(int pwm_duty_cycle){
@@ -185,7 +172,6 @@ float Motor::pid_velocity(float setpoint){
 
   else drive_motor(0);
 
-
   return vel;
 }
 
@@ -196,9 +182,7 @@ void Motor::update_PID_Pos(int goal){
         pid_position(goal);
         _previousTimeUpdate = millis();
     }
-
     else;
-
 }
 
 float Motor::update_PID_Vel(float setpoint){
@@ -302,14 +286,19 @@ MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &m
             addMotor(mot3);
 }
 
+MotorController::MotorController(){}
+
+MotorController::~MotorController(){}
+
 size_t MotorController::addMotor(Motor &motor){
     motors.push_back(motor);
     return motors.size();
 }
 
-size_t MotorController::addMotor(motor_struct motor){
-  Motor _motor(motor);
-  motors.push_back(_motor);
+size_t MotorController::addMotor(Motor::motor_struct motor){
+    Motor _motor(motor);
+    motors.push_back(_motor);
+    return motors.size();
 }
 
 void MotorController::initAllMotors(){
@@ -402,7 +391,7 @@ void MotorController::assignPIDvars_all_vel(float kP, float kI, float kD){
     }
 }
 
-void MotorController::parse_data(){
+void MotorController::parse_data_serial(){
     switch(_data.command){
 
         case NONE:
@@ -436,35 +425,57 @@ void MotorController::parse_data(){
     }
 }
 
-void MotorController::prepare_feedback_data(){
+void MotorController::prepare_feedback_data_serial(){
     for(uint8_t i = 0;i<motors.size();i++){
         _data.pos_feedback[i] = motors[i].read_enc();
         _data.velocity_feedback[i] = motors[i].getVelocity();
     }
 }
 
-// void MotorController::run_controller(){
-//      switch(_data.command){
-//         case NONE:
-//             break;
+void MotorController::prepare_feedback_data_ros(open_motor_msgs::feedback* fb){
+    for(uint8_t i = 0;i<motors.size();i++){
+        fb->position[i] = motors[i].read_enc();
+        fb->velocity[i] = motors[i].getVelocity();
+    }
+}
 
-//         case PWM_DIRECT:
-//             run_motors_setpoint_pwm();
-//             break;
+void MotorController::parse_data_ros(Message_Parser::Comm_Data* _data){
+    for(uint8_t i = 0; i<motors.size(); i++){
+        motors[i].assignSetpoint_pos(_data->goal_position[i]);
+        motors[i].assignSetpoint_vel(_data->goal_velocity[i]);
+    }
+}
 
-//         case POS_PID:
-//             updatePID_pos();
-//             break;
+void MotorController::run_controller(Message_Parser::Comm_Data* _data){
+    switch(_data->command){
+        case NONE:
+            break;
+
+        case PWM_DIRECT:
+            
+            break;
+
+        case POS_PID:
+            updatePID_pos();
+            break;
         
-//         case VEL_PID:
-//             updatePID_vel();
-//             break;
-//     }
-// }
+        case VEL_PID:
+            updatePID_vel();
+            break;
+
+        case PID_VARS_POS_ALL:
+            //case added to prevent warning
+            break;
+        
+        case PID_VARS_VEL_ALL:
+            //case added to prevent warning
+            break;
+        
+    }
+}
 
 
-
-/////////////////Communicators///////////////////////////
+/////////////////  Serial Comms  ///////////////////////////
 Serial_Comms::Serial_Comms(int baudrate, float timeout){
     _baudrate = baudrate;
     _timeout = timeout;
@@ -550,27 +561,37 @@ void Serial_Comms::send_feedback_data(Message_Parser::Comm_Data& data){
 }
 
 
-ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
-    _baudrate = baudrate;
-    _nh = nh;
-    
-    _nh.getHardware()->setBaud(115200);
-    _nh.initNode();
-    _nh.subscribe(_pid_config_sub);
-    _nh.subscribe(_setpoints_sub);
-    _nh.advertise(_feedback_pub);
 
-}
+/////////////////  ROS Comms  ///////////////////////////
+// ROS_Comms::ROS_Comms(int baudrate): _setpoints_sub("open_motor_setpoints",&_setpoint_callback,this)
+// {
+//     _baudrate = baudrate;
 
-void ROS_Comms::setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
-  goal_pos = setpoint_msg.position_setpoint[0];
-  goal_vel = setpoint_msg.velocity_setpoint[0];
-}
+//     // _nh.getHardware()->setBaud(115200);
+//     // _nh.initNode();
+//     // _nh.subscribe(_pid_config_sub);
+//     // _nh.subscribe(_setpoints_sub);
+//     // _nh.advertise(_feedback_pub);
 
-void ROS_Comms::pid_config_callback(const open_motor_msgs::pid_config pid_vars){
-  if(pid_vars.update == true){
-    mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
-    mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
-    mot0.setPIDUpdateRate(pid_vars.pid_update_position);
-  }
-}
+// }
+
+// bool ROS_Comms::init_node(){
+// // _setpoints_sub("open_motor_setpoints",&setpoint_callback);
+
+// // ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints",&setpoint_callback);
+// // ros::Subscriber<open_motor_msgs::pid_config> pid_config_sub("open_motor_pid_config",&pid_config_callback);
+// // ros::Publisher feedback_pub("open_motor_feedback", &feedback);
+// }
+
+// void ROS_Comms::_setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
+// //   goal_pos = setpoint_msg.position_setpoint[0];
+// //   goal_vel = setpoint_msg.velocity_setpoint[0];
+// }
+
+// void ROS_Comms::_pid_config_callback(const open_motor_msgs::pid_config pid_vars){
+//   if(pid_vars.update == true){
+//     // mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
+//     // mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
+//     // mot0.setPIDUpdateRate(pid_vars.pid_update_position);
+//   }
+// }

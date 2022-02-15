@@ -11,6 +11,7 @@
 // #define PYTHON_SERIAL
 
 #ifdef ROS
+  #include <ros.h>
   #include <open_motor_msgs/feedback.h>
   #include <open_motor_msgs/pid_config.h>
   #include <open_motor_msgs/setpoints.h>
@@ -33,6 +34,26 @@ class Motor{
     public:
 
         /**
+         Struct for passing motor params to motor param constructor
+         @param EN enable hw pin for motor.
+         @param PWM1 pwm1 hw pin for motor.
+         @param PWM2 pwm2 hw pin for motor.
+         @param SENSE current sense hw pin for motor.
+         @param encA encoder channel A for quadrature encoder.
+         @param encB encoder channel B for quadrature encoder.
+         @param ticks_per_rotation how many encoder ticks per one output shaft rotation for the motor.
+        */
+        typedef struct motor_struct{
+          int EN; 
+          int PWM1;
+          int PWM2;
+          int SENSE;
+          int encA;
+          int encB;
+          float ticks_per_rotation;
+        }motor_struct;
+
+        /**
          * Motor constructor for initialization with direct params.
          @param EN enable hw pin for motor.
          @param PWM1 pwm1 hw pin for motor.
@@ -50,11 +71,16 @@ class Motor{
         */
         Motor(motor_struct motor);
 
+        /**
+         Parameterless Constructor
+        */
+        Motor();
+
 
         /**
          Destructor
         */
-        ~Motor::Motor();
+        ~Motor();
 
         /**
           Setup microcontroller pins.
@@ -197,25 +223,6 @@ class Motor{
         */
         void update_PID_Vel_setpoint();
 
-        /**
-         Struct for passing motor params to motor param constructor
-         @param EN enable hw pin for motor.
-         @param PWM1 pwm1 hw pin for motor.
-         @param PWM2 pwm2 hw pin for motor.
-         @param SENSE current sense hw pin for motor.
-         @param encA encoder channel A for quadrature encoder.
-         @param encB encoder channel B for quadrature encoder.
-         @param ticks_per_rotation how many encoder ticks per one output shaft rotation for the motor.
-        */
-        typedef struct motor_struct{
-          int EN; 
-          int PWM1;
-          int PWM2;
-          int SENSE;
-          int encA;
-          int encB;
-          float ticks_per_rotation;
-        }motor_struct;
         
        
 
@@ -276,12 +283,14 @@ class Message_Parser{
             float kD_pos[4];
             int goal_position[4] = {0,0,0,0};
             int pos_feedback[4];
+            float pos_update;
 
             float kP_vel[4]; //For each motor
             float kI_vel[4];
             float kD_vel[4];
             float goal_velocity[4] = {0,0,0,0};
             float velocity_feedback[4];
+            float vel_update;
 
             int goal_pwm[4] = {0,0,0,0};             
         };
@@ -291,7 +300,7 @@ class Message_Parser{
 /**
   Motor Controller class manages all 4 motors on the board
 */
-class MotorController : private Message_Parser, Motor{
+class MotorController : private Message_Parser, Motor::motor_struct{
     public:
 
         /**
@@ -304,15 +313,14 @@ class MotorController : private Message_Parser, Motor{
         MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3);
         
         /**
-          Class constructor is used when instantiating motors within the class
-          @param num_motors number of motors to be added to the controller
+          Parameterless constructor is used when instantiating motors within the class
         */
         MotorController();
 
         /**
           Destructor
         */
-        ~MotorController::MotorController();
+        ~MotorController();
 
         /**
          Adds a motor to the motors vector
@@ -424,18 +432,27 @@ class MotorController : private Message_Parser, Motor{
         /**
           Parse incoming serial data into motor parameters
         */
-        void parse_data();
+        void parse_data_serial();
 
         /**
           Prepare feedback data for serial comms
         */
-        void prepare_feedback_data();
+        void prepare_feedback_data_serial();
+
+        /**
+          Prepare position feedback data for ROS comms
+        */
+        void prepare_feedback_data_ros(open_motor_msgs::feedback* fb);
+
+        /**
+          Parse data from ROS comms
+        */
+        void parse_data_ros(Message_Parser::Comm_Data* data);
 
         /**
           Run the state machine to control all motors and switch between pwm, position, and velocity control
         */
-        void run_controller();
-
+        void run_controller(Message_Parser::Comm_Data* _data);
 
     private:
         int motor_count = 0;
@@ -449,7 +466,7 @@ class Serial_Comms : private Message_Parser{
     public:
             Serial_Comms(int baudrate, float timeout);
             void init();
-            void check_for_data(Serial_Comms::Comm_Data& data);
+            void check_for_data(Message_Parser::Comm_Data& data);
             void send_feedback_data(Message_Parser::Comm_Data& data);
 
     private:
@@ -459,29 +476,23 @@ class Serial_Comms : private Message_Parser{
 
 };
 
-class ROS_Comms : private Message_Parser{
-    public:
-        ros::NodeHandle nh;
-        ros::Subscriber<open_motor_msgs::setpoints, ROS_Comms> _setpoints_sub;
-        ros::Subscriber<open_motor_msgs::pid_config, ROS_Comms> _pid_config_sub;
-        open_motor_msgs::feedback feedback;
+// class ROS_Comms : private Message_Parser{
+//     public:
+//         ros::NodeHandle nh;
+//         ros::Subscriber<open_motor_msgs::setpoints, ROS_Comms> _setpoints_sub;
+//         ros::Subscriber<open_motor_msgs::pid_config, ROS_Comms> _pid_config_sub;
+//         ros::Publisher _feedback_pub;
 
-        ROS_Comms(int baudrate);
+//         ROS_Comms(int baudrate);
+//         bool init_node();
         
-        void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg);
-        void pid_config_callback(const open_motor_msgs::pid_config pid_vars);
+//         void _setpoint_callback(const open_motor_msgs::setpoints setpoint_msg);
+//         void _pid_config_callback(const open_motor_msgs::pid_config pid_vars);
 
+//     private:
+//         int _baudrate;
+//         open_motor_msgs::feedback _feedback;
 
-
-    private:
-        int _baudrate;
-        ros::NodeHandle _nh;
-        // open_motor_msgs::feedback feedback;
-
-        ros::Subscriber<open_motor_msgs::setpoints> _setpoints_sub;
-        ros::Subscriber<open_motor_msgs::pid_config> _pid_config_sub;
-        ros::Publisher _feedback_pub;
-
-};
+// };
 
 #endif

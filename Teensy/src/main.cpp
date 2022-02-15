@@ -4,6 +4,7 @@
  * License: MIT
  * 
  *  ROS Enabled Motor Controller for Teensy4.0 Motor Controller Board
+ *  Publishes feedback and accepts commands over ros to emulate ros actions
  * 
 **/
 
@@ -15,8 +16,11 @@
 #define GEAR_RATIO 131.0
 #define COUNT_PER_ROT_ENC 16.0
 #define COUNT_PER_ROT GEAR_RATIO * COUNT_PER_ROT_ENC
+#define NUM_MOTORS 4
 
-// Communicator::Comm_Data comm_msg;
+
+/////  Global Vars for Motor Control  /////
+Message_Parser::Comm_Data comm_msg;
 
 Motor::motor_struct mot0{MOT0_EN,MOT0_PWM1,MOT0_PWM2,SENSE0,ENC0_A,ENC0_B,COUNT_PER_ROT};
 Motor::motor_struct mot1{MOT1_EN,MOT1_PWM1,MOT1_PWM2,SENSE1,ENC1_A,ENC1_B,COUNT_PER_ROT};
@@ -26,67 +30,75 @@ Motor::motor_struct mot3{MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE3,ENC3_A,ENC3_B,COUNT_
 MotorController motor_controller;
 
 
-void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg){
-  goal_pos = setpoint_msg.position_setpoint[0];
-  goal_vel = setpoint_msg.velocity_setpoint[0];
-}
+/////  Global Callback Prototypes and Variables for ROS  /////
+open_motor_msgs::feedback feedback;
+void setpoint_callback(const open_motor_msgs::setpoints& setpoint_msg);
+void pid_config_callback(const open_motor_msgs::pid_config& pid_vars);
 
-void pid_config_callback(const open_motor_msgs::pid_config pid_vars){
-  if(pid_vars.update == true){
-    mot0.setPID_vars_pos(pid_vars.kP_pos,pid_vars.kI_pos,pid_vars.kD_pos);
-    mot0.setPID_vars_vel(pid_vars.kP_vel,pid_vars.kI_vel,pid_vars.kD_vel);
-    mot0.setPIDUpdateRate(pid_vars.pid_update_position);
-  }
-}
-
-ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints",&setpoint_callback);
-ros::Subscriber<open_motor_msgs::pid_config> pid_config_sub("open_motor_pid_config",&pid_config_callback);
+ros::NodeHandle nh;
+ros::Subscriber<open_motor_msgs::setpoints> setpoints_sub("open_motor_setpoints", &setpoint_callback);
+ros::Subscriber<open_motor_msgs::pid_config> pid_config_sub("open_motor_pid_config", &pid_config_callback);
 ros::Publisher feedback_pub("open_motor_feedback", &feedback);
 
 
 void setup() {
-  motor_controller();
+  //Add  motors to motor controller
   motor_controller.addMotor(mot0);
   motor_controller.addMotor(mot1);
   motor_controller.addMotor(mot2);
   motor_controller.addMotor(mot3);
 
+  //Initialize ROS Node
   nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(pid_config_sub);
   nh.subscribe(setpoints_sub);
   nh.advertise(feedback_pub);
 
-
-
-  mot0.init_motor();
-  mot0.enable_motor();
-
-  // mot0.setPIDUpdateRate(15);
-  mot0.setPID_vars_pos(1.25, 0.03, 0.0);  
-  mot0.setPID_vars_vel(1.0, 0.15, 0.0075);
-
-  for(int i = 0; i<4; i++){
-    feedback.position[i] = 0;
-    feedback.velocity[i] = 0;
-  }
-
+  //Initialize to default PID variables and enable motors
+  motor_controller.assignPIDupdate_all(50);
+  motor_controller.assignPIDvars_all_pos(1.0,0.0,0.0);
+  motor_controller.assignPIDvars_all_vel(1.0,0.0,0.0);
+  motor_controller.initAllMotors();
+  motor_controller.enableAllMotors();
 }
 
 void loop() {
-
   nh.spinOnce();
 
-  
-  // mot0.drive_motor(goal_pos);
-  // velocity_msg.data = mot0.getVelocity();
-
-  // error_msg =  mot0.pid_position(goal_pos);
-  feedback.velocity[0] = mot0.pid_velocity(goal_vel);
-  feedback.position[0] = mot0.read_enc();
-
+  motor_controller.parse_data_ros(&comm_msg);
+  motor_controller.run_controller(&comm_msg);  
+  motor_controller.prepare_feedback_data_ros(&feedback);
   feedback_pub.publish(&feedback);
-
+  
   delay(5);
+}
 
+
+
+/////  Callback Functions /////
+void setpoint_callback(const open_motor_msgs::setpoints& setpoint_msg){
+  comm_msg.command = setpoint_msg.command;
+  for(uint8_t i = 0; i < NUM_MOTORS; i++){
+    comm_msg.goal_position[i] = setpoint_msg.position_setpoint[i];
+    comm_msg.goal_velocity[i] = setpoint_msg.velocity_setpoint[i];
+  }
+}
+
+void pid_config_callback(const open_motor_msgs::pid_config& pid_vars){
+  if(pid_vars.update == true){
+
+    comm_msg.pos_update = pid_vars.pid_update_position;
+    comm_msg.vel_update = pid_vars.pid_update_velocity;
+
+    for(uint8_t i = 0; i < NUM_MOTORS; i++){
+      comm_msg.kP_pos[i] = pid_vars.kP_pos[i];
+      comm_msg.kI_pos[i] = pid_vars.kI_pos[i];
+      comm_msg.kD_pos[i] = pid_vars.kD_pos[i];
+
+      comm_msg.kP_vel[i] = pid_vars.kP_vel[i];
+      comm_msg.kI_vel[i] = pid_vars.kI_vel[i];
+      comm_msg.kD_vel[i] = pid_vars.kD_vel[i];
+    }
+  }
 }

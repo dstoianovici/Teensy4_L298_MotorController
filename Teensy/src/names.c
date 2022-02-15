@@ -1,3 +1,9 @@
+/*
+* This file is used to remap USB parameters for the tensy Board
+* feel free to change this to suit your needs
+* remember to change the LEN variable to the length of your changes
+*/
+
 #include<usb_names.h>
 
 #define MANUFACTURER_NAME	{'M','e','c','h','D','e','s','i','g','n'}

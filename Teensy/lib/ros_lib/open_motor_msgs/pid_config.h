@@ -14,30 +14,27 @@ namespace open_motor_msgs
     public:
       typedef bool _update_type;
       _update_type update;
-      typedef float _kP_pos_type;
-      _kP_pos_type kP_pos;
-      typedef float _kI_pos_type;
-      _kI_pos_type kI_pos;
-      typedef float _kD_pos_type;
-      _kD_pos_type kD_pos;
+      float kP_pos[4];
+      float kI_pos[4];
+      float kD_pos[4];
       typedef float _pid_update_position_type;
       _pid_update_position_type pid_update_position;
-      typedef float _kP_vel_type;
-      _kP_vel_type kP_vel;
-      typedef float _kI_vel_type;
-      _kI_vel_type kI_vel;
-      typedef float _kD_vel_type;
-      _kD_vel_type kD_vel;
+      float kP_vel[4];
+      float kI_vel[4];
+      float kD_vel[4];
+      typedef float _pid_update_velocity_type;
+      _pid_update_velocity_type pid_update_velocity;
 
     pid_config():
       update(0),
-      kP_pos(0),
-      kI_pos(0),
-      kD_pos(0),
+      kP_pos(),
+      kI_pos(),
+      kD_pos(),
       pid_update_position(0),
-      kP_vel(0),
-      kI_vel(0),
-      kD_vel(0)
+      kP_vel(),
+      kI_vel(),
+      kD_vel(),
+      pid_update_velocity(0)
     {
     }
 
@@ -51,36 +48,42 @@ namespace open_motor_msgs
       u_update.real = this->update;
       *(outbuffer + offset + 0) = (u_update.base >> (8 * 0)) & 0xFF;
       offset += sizeof(this->update);
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kP_pos;
-      u_kP_pos.real = this->kP_pos;
-      *(outbuffer + offset + 0) = (u_kP_pos.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kP_pos.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kP_pos.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kP_pos.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kP_pos);
+      } u_kP_posi;
+      u_kP_posi.real = this->kP_pos[i];
+      *(outbuffer + offset + 0) = (u_kP_posi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kP_posi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kP_posi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kP_posi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kP_pos[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kI_pos;
-      u_kI_pos.real = this->kI_pos;
-      *(outbuffer + offset + 0) = (u_kI_pos.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kI_pos.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kI_pos.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kI_pos.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kI_pos);
+      } u_kI_posi;
+      u_kI_posi.real = this->kI_pos[i];
+      *(outbuffer + offset + 0) = (u_kI_posi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kI_posi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kI_posi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kI_posi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kI_pos[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kD_pos;
-      u_kD_pos.real = this->kD_pos;
-      *(outbuffer + offset + 0) = (u_kD_pos.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kD_pos.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kD_pos.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kD_pos.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kD_pos);
+      } u_kD_posi;
+      u_kD_posi.real = this->kD_pos[i];
+      *(outbuffer + offset + 0) = (u_kD_posi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kD_posi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kD_posi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kD_posi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kD_pos[i]);
+      }
       union {
         float real;
         uint32_t base;
@@ -91,36 +94,52 @@ namespace open_motor_msgs
       *(outbuffer + offset + 2) = (u_pid_update_position.base >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (u_pid_update_position.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->pid_update_position);
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kP_vel;
-      u_kP_vel.real = this->kP_vel;
-      *(outbuffer + offset + 0) = (u_kP_vel.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kP_vel.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kP_vel.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kP_vel.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kP_vel);
+      } u_kP_veli;
+      u_kP_veli.real = this->kP_vel[i];
+      *(outbuffer + offset + 0) = (u_kP_veli.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kP_veli.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kP_veli.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kP_veli.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kP_vel[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kI_vel;
-      u_kI_vel.real = this->kI_vel;
-      *(outbuffer + offset + 0) = (u_kI_vel.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kI_vel.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kI_vel.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kI_vel.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kI_vel);
+      } u_kI_veli;
+      u_kI_veli.real = this->kI_vel[i];
+      *(outbuffer + offset + 0) = (u_kI_veli.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kI_veli.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kI_veli.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kI_veli.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kI_vel[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kD_vel;
-      u_kD_vel.real = this->kD_vel;
-      *(outbuffer + offset + 0) = (u_kD_vel.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_kD_vel.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_kD_vel.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_kD_vel.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->kD_vel);
+      } u_kD_veli;
+      u_kD_veli.real = this->kD_vel[i];
+      *(outbuffer + offset + 0) = (u_kD_veli.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_kD_veli.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_kD_veli.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_kD_veli.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->kD_vel[i]);
+      }
+      union {
+        float real;
+        uint32_t base;
+      } u_pid_update_velocity;
+      u_pid_update_velocity.real = this->pid_update_velocity;
+      *(outbuffer + offset + 0) = (u_pid_update_velocity.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_pid_update_velocity.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_pid_update_velocity.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_pid_update_velocity.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->pid_update_velocity);
       return offset;
     }
 
@@ -135,39 +154,45 @@ namespace open_motor_msgs
       u_update.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
       this->update = u_update.real;
       offset += sizeof(this->update);
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kP_pos;
-      u_kP_pos.base = 0;
-      u_kP_pos.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kP_pos.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kP_pos.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kP_pos.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kP_pos = u_kP_pos.real;
-      offset += sizeof(this->kP_pos);
+      } u_kP_posi;
+      u_kP_posi.base = 0;
+      u_kP_posi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kP_posi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kP_posi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kP_posi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kP_pos[i] = u_kP_posi.real;
+      offset += sizeof(this->kP_pos[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kI_pos;
-      u_kI_pos.base = 0;
-      u_kI_pos.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kI_pos.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kI_pos.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kI_pos.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kI_pos = u_kI_pos.real;
-      offset += sizeof(this->kI_pos);
+      } u_kI_posi;
+      u_kI_posi.base = 0;
+      u_kI_posi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kI_posi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kI_posi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kI_posi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kI_pos[i] = u_kI_posi.real;
+      offset += sizeof(this->kI_pos[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kD_pos;
-      u_kD_pos.base = 0;
-      u_kD_pos.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kD_pos.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kD_pos.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kD_pos.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kD_pos = u_kD_pos.real;
-      offset += sizeof(this->kD_pos);
+      } u_kD_posi;
+      u_kD_posi.base = 0;
+      u_kD_posi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kD_posi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kD_posi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kD_posi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kD_pos[i] = u_kD_posi.real;
+      offset += sizeof(this->kD_pos[i]);
+      }
       union {
         float real;
         uint32_t base;
@@ -179,44 +204,61 @@ namespace open_motor_msgs
       u_pid_update_position.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
       this->pid_update_position = u_pid_update_position.real;
       offset += sizeof(this->pid_update_position);
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kP_vel;
-      u_kP_vel.base = 0;
-      u_kP_vel.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kP_vel.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kP_vel.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kP_vel.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kP_vel = u_kP_vel.real;
-      offset += sizeof(this->kP_vel);
+      } u_kP_veli;
+      u_kP_veli.base = 0;
+      u_kP_veli.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kP_veli.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kP_veli.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kP_veli.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kP_vel[i] = u_kP_veli.real;
+      offset += sizeof(this->kP_vel[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kI_vel;
-      u_kI_vel.base = 0;
-      u_kI_vel.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kI_vel.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kI_vel.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kI_vel.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kI_vel = u_kI_vel.real;
-      offset += sizeof(this->kI_vel);
+      } u_kI_veli;
+      u_kI_veli.base = 0;
+      u_kI_veli.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kI_veli.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kI_veli.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kI_veli.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kI_vel[i] = u_kI_veli.real;
+      offset += sizeof(this->kI_vel[i]);
+      }
+      for( uint32_t i = 0; i < 4; i++){
       union {
         float real;
         uint32_t base;
-      } u_kD_vel;
-      u_kD_vel.base = 0;
-      u_kD_vel.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_kD_vel.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_kD_vel.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_kD_vel.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->kD_vel = u_kD_vel.real;
-      offset += sizeof(this->kD_vel);
+      } u_kD_veli;
+      u_kD_veli.base = 0;
+      u_kD_veli.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_kD_veli.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_kD_veli.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_kD_veli.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->kD_vel[i] = u_kD_veli.real;
+      offset += sizeof(this->kD_vel[i]);
+      }
+      union {
+        float real;
+        uint32_t base;
+      } u_pid_update_velocity;
+      u_pid_update_velocity.base = 0;
+      u_pid_update_velocity.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_pid_update_velocity.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_pid_update_velocity.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_pid_update_velocity.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->pid_update_velocity = u_pid_update_velocity.real;
+      offset += sizeof(this->pid_update_velocity);
      return offset;
     }
 
     const char * getType(){ return "open_motor_msgs/pid_config"; };
-    const char * getMD5(){ return "e86fc9db45258146486378e7e8c8682c"; };
+    const char * getMD5(){ return "cd4fcf7971c73c09a2b3aefbc2513515"; };
 
   };
 
