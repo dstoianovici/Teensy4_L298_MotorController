@@ -5,6 +5,9 @@ This repo provides an open source motor controller library, with control inputs 
 
 This Teensy4 Motor shield incoroporates 2x L298N motor driver ICs, 4 encoder inputs, and 4 current measurement circuits allowing for control of 4 DC motors. The firmware and accompanying command code provided here allows for direct integration into robotics projects to get prototypes running quickly!
 
+ROS functionality is supported in the ROS branch and does not currently include a PID Tuning GUI. 
+PYTHON functionality is supported in the PYTHON branch and does include a PID Tuning GUI, however installation of python_serial and pyqt5 are required. 
+
 This repo serves as documentation for the motor controller library as well as documentation for the hardware.
 
 ![MotorController](https://user-images.githubusercontent.com/26233185/141203471-50df6b40-a233-4334-bb6f-87546810c80e.jpg)
@@ -28,7 +31,7 @@ The next step is to plug in the Teensy4.0 into the female headers, and then the 
 <!-- This board is supplied with a firmware allowing for 4 motor control out of the box. Using the available serial package and Teensy Board firmware, motor control and communication is available of out the box. -->
 
 ### Setting up the Teensy
-Open the `/open_motor/Teensy` directory in VS Code and switch to the ROS or PYTHON respectively to upload the correct firmware for your needs. Next, use PlatformIO Build to flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing your teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly.
+Open the `/open_motor/Teensy` directory in VS Code and switch to the ROS or PYTHON branch respectively to upload the correct firmware for your needs. Next, use PlatformIO Build to flash the Teensy4.0 with the motor controller firmware. If this is your first time flashing your teensy, then the board may need to be flashed from the Arduino IDE for the first time, as described [here](https://www.pjrc.com/teensy/troubleshoot.html), under the **No Serial Port While Programming** heading. A simple blink program from Arduino's IDE will be fine. After this is complete your teensy should flash the motor controller firmware correctly.
 
 ### ROS
 #### Requirements
@@ -40,7 +43,7 @@ First, ensure that rosserial is installed on you system, if not install using
 
         sudo apt-get install ros-melodic-rosserial
         
-Next, copy the directory `open_motor/ROS/open_motor_msgs` from this repo into `your_catkin_ws/src`. From here we can run `catkin_make` to compile the ROS messages for 'open_motor'.
+Next, copy the directory `open_motor/ROS/open_motor_msgs` from this repo into `your_catkin_ws/src`. From here we can run `catkin_make` to compile the ROS messages for 'open_motor'. The ros messages used on the rosserial side are precompiled and included in `ros_lib`, to edit or add your own messages please follow these tutorials [here](http://wiki.ros.org/rosserial/Tutorials/Adding%20Other%20Messages) and [here](https://medium.com/@Sammy_Hasan/quick-code-v0-3-rosserial-custom-messages-ebdfc7ea172e)
 
 With these steps the ROS setup is complete and these messages can now be used to communicate with the ROS node on the Teensy.
 
@@ -68,6 +71,7 @@ which will load a python venv configured for the open_motor package. From here y
 
 The open_motor python library is located in 'open_motor/python_serial/src/open_motor'. To use this library in your projects please copy 'open_motor_serial.py' into your working directory, or link back to the original install location as done with 'sys.path' in the examples using an absolute path from the working directory of your code. This is a temporary solution as the package is not yet prepared for pip distribution.
 
+Although this is being distributed with a virtual environment, this method is not entirely portable and migration to installable pip package will occur in the near future.
 
 
 ## Board Dimensions
