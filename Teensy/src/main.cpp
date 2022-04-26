@@ -135,18 +135,15 @@ void loop() {
         mot2.pid_position(comm_data.goal_position[2]);
         mot3.pid_position(comm_data.goal_position[3]);
 
-
-        comm_data.velocity_feedback[0] = mot0.getVelocity();
-        comm_data.velocity_feedback[1] = mot1.getVelocity();
-        comm_data.velocity_feedback[2] = mot2.getVelocity();
-        comm_data.velocity_feedback[3] = mot3.getVelocity();
-
         comm_data.pos_feedback[0] = mot0.read_enc();
         comm_data.pos_feedback[1] = mot1.read_enc();
         comm_data.pos_feedback[2] = mot2.read_enc();
         comm_data.pos_feedback[3] = mot3.read_enc();
 
-
+        comm_data.velocity_feedback[0] = mot0.getVelocity();
+        comm_data.velocity_feedback[1] = mot1.getVelocity();
+        comm_data.velocity_feedback[2] = mot2.getVelocity();
+        comm_data.velocity_feedback[3] = mot3.getVelocity();
 
         break;
       
@@ -157,12 +154,10 @@ void loop() {
         mot2.pid_velocity(comm_data.goal_velocity[2]);
         mot3.pid_velocity(comm_data.goal_velocity[3]);
 
-
         comm_data.pos_feedback[0] = mot0.read_enc();
         comm_data.pos_feedback[1] = mot1.read_enc();
         comm_data.pos_feedback[2] = mot2.read_enc();
         comm_data.pos_feedback[3] = mot3.read_enc();
-
 
         comm_data.velocity_feedback[0] = mot0.getVelocity();
         comm_data.velocity_feedback[1] = mot1.getVelocity();
