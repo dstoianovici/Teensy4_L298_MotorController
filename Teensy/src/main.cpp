@@ -41,11 +41,6 @@ Motor mot3(MOT3_EN,MOT3_PWM1,MOT3_PWM2,SENSE0,ENC3_A,ENC3_B, COUNT_PER_ROT);
 MotorController motors(mot0,mot1,mot2,mot3);
 
 
-
-
-
-
-
 #ifdef SERIAL_COM
 Serial_Comms serial_comms(BAUD,TIMEOUT);
 #endif
@@ -64,26 +59,24 @@ void setup() {
 
   mot0.init_motor();
   mot0.enable_motor();
-  mot0.setPID_vars_pos(1.0,0.00,0.0);
-  mot0.setPID_vars_vel(1.0,0.00,0.0);
+  mot0.setPID_vars_pos(1.0,0.00,0.00);
+  mot0.setPID_vars_vel(1.0,0.00,0.00);
 
   mot1.init_motor();
   mot1.enable_motor();
-  mot1.setPID_vars_pos(1.0,0.00,0.0);
-  mot1.setPID_vars_vel(1.0,0.00,0.0);
+  mot1.setPID_vars_pos(1.0,0.00,0.00);
+  mot1.setPID_vars_vel(1.0,0.00,0.00);
 
   mot2.init_motor();
   mot2.enable_motor();
-  mot2.setPID_vars_pos(1.0,0.0,0.0);
-  mot2.setPID_vars_vel(1.0,0.0,0.0);
+  mot2.setPID_vars_pos(1.0,0.0,0.00);
+  mot2.setPID_vars_vel(1.0,0.0,0.00);
 
   mot3.init_motor();
   mot3.enable_motor();
-  mot3.setPID_vars_pos(1.0,0.0,0.0);
-  mot3.setPID_vars_vel(1.0,0.0,0.0);
+  mot3.setPID_vars_pos(1.0,0.0,0.00);
+  mot3.setPID_vars_vel(1.0,0.0,0.00);
 
-
-  
 }
 
 void loop() {
@@ -137,31 +130,44 @@ void loop() {
 
       case POS_PID:
 
+        mot0.pid_position(comm_data.goal_position[0]);
+        mot1.pid_position(comm_data.goal_position[1]);
+        mot2.pid_position(comm_data.goal_position[2]);
+        mot3.pid_position(comm_data.goal_position[3]);
+
+
         comm_data.velocity_feedback[0] = mot0.getVelocity();
         comm_data.velocity_feedback[1] = mot1.getVelocity();
         comm_data.velocity_feedback[2] = mot2.getVelocity();
         comm_data.velocity_feedback[3] = mot3.getVelocity();
-
-
-
-        comm_data.pos_feedback[0] = mot0.pid_position(comm_data.goal_position[0]);
-        comm_data.pos_feedback[1] = mot1.pid_position(comm_data.goal_position[1]);
-        comm_data.pos_feedback[2] = mot2.pid_position(comm_data.goal_position[2]);
-        comm_data.pos_feedback[3] = mot3.pid_position(comm_data.goal_position[3]);
-
-        break;
-      
-      case VEL_PID:
 
         comm_data.pos_feedback[0] = mot0.read_enc();
         comm_data.pos_feedback[1] = mot1.read_enc();
         comm_data.pos_feedback[2] = mot2.read_enc();
         comm_data.pos_feedback[3] = mot3.read_enc();
 
-        comm_data.velocity_feedback[0] = mot0.pid_velocity(comm_data.goal_velocity[0]);
-        comm_data.velocity_feedback[1] = mot1.pid_velocity(comm_data.goal_velocity[1]);
-        comm_data.velocity_feedback[2] = mot2.pid_velocity(comm_data.goal_velocity[2]);
-        comm_data.velocity_feedback[3] = mot3.pid_velocity(comm_data.goal_velocity[3]);
+
+
+        break;
+      
+      case VEL_PID:
+
+        mot0.pid_velocity(comm_data.goal_velocity[0]);
+        mot1.pid_velocity(comm_data.goal_velocity[1]);
+        mot2.pid_velocity(comm_data.goal_velocity[2]);
+        mot3.pid_velocity(comm_data.goal_velocity[3]);
+
+
+        comm_data.pos_feedback[0] = mot0.read_enc();
+        comm_data.pos_feedback[1] = mot1.read_enc();
+        comm_data.pos_feedback[2] = mot2.read_enc();
+        comm_data.pos_feedback[3] = mot3.read_enc();
+
+
+        comm_data.velocity_feedback[0] = mot0.getVelocity();
+        comm_data.velocity_feedback[1] = mot1.getVelocity();
+        comm_data.velocity_feedback[2] = mot2.getVelocity();
+        comm_data.velocity_feedback[3] = mot3.getVelocity();
 
         break;
   }

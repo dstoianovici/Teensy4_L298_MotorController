@@ -22,6 +22,7 @@ void Motor::init_motor(){
 }
 
 void Motor::drive_motor(int pwm_duty_cycle){
+    pwm_duty_cycle = pwm_duty_cycle * _direction;
     if(pwm_duty_cycle < 0){
         analogWrite(_PWM2,abs(pwm_duty_cycle));
         analogWrite(_PWM1,0);
@@ -47,7 +48,7 @@ void Motor::drive_motor_setpoint(){
 }
 
 int Motor::read_enc(){
-    _enc_count = encoder.read();
+    _enc_count = encoder.read() * _direction;
     return _enc_count;
 }
 
@@ -264,6 +265,11 @@ float Motor::pid_velocity_setpoint(){
 
 
   return vel;
+}
+
+void Motor::setDirection(bool direction){
+    if(direction == true) _direction = 1;
+    else if(direction == false) _direction = -1;
 }
 
 
@@ -503,6 +509,22 @@ void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
             }
         }
 
+        if(data.rx_json["command"] == "pid_vars_solo_pos"){
+            data.command = PID_VARS_SOLO_POS;
+            int mot_num = data.rx_json["mot_num"];
+            data.kP_pos[mot_num] = data.rx_json["P"];
+            data.kI_pos[mot_num] = data.rx_json["I"];
+            data.kD_pos[mot_num] = data.rx_json["D"];
+        }
+
+        if(data.rx_json["command"] == "pid_vars_solo_vel"){
+            data.command = PID_VARS_SOLO_VEL;
+            int mot_num = data.rx_json["mot_num"];
+            data.kP_vel[mot_num] = data.rx_json["P"];
+            data.kI_vel[mot_num] = data.rx_json["I"];
+            data.kD_vel[mot_num] = data.rx_json["D"];
+        }
+
        return;
     }
     else return;
@@ -525,18 +547,3 @@ void Serial_Comms::send_feedback_data(Message_Parser::Comm_Data& data){
     // Serial.flush();
     // data.tx_json.clear();
 }
-
-
-
-
-// ROS_Comms::ROS_Comms(ros::NodeHandle &nh,int baudrate){
-//     _baudrate = baudrate;
-//     _nh = nh;
-    
-//     _nh.getHardware()->setBaud(115200);
-//     _nh.initNode();
-//     _nh.subscribe(_pid_config_sub);
-//     _nh.subscribe(_setpoints_sub);
-//     _nh.advertise(_feedback_pub);
-
-// }

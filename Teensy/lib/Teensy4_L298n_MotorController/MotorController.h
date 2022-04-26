@@ -16,7 +16,9 @@ enum Command{
     POS_PID,
     VEL_PID,
     PID_VARS_POS_ALL,
-    PID_VARS_VEL_ALL
+    PID_VARS_VEL_ALL,
+    PID_VARS_SOLO_POS,
+    PID_VARS_SOLO_VEL
 };
 
 class Motor{
@@ -59,6 +61,8 @@ class Motor{
         void update_PID_Pos_setpoint(); //uses internal setpoint
         void update_PID_Vel_setpoint(); //Uses internal setpoint
 
+        void setDirection(bool direction);
+
     private:
 
         //Encoder Objects
@@ -73,6 +77,8 @@ class Motor{
         int _encB;
         float  _ticks_per_rot;
         int _enc_count;
+
+        int _direction = 1;
 
         //Setpoint Vars
         int _newSet;
@@ -183,24 +189,5 @@ class Serial_Comms : private Message_Parser{
             float _timeout;
 
 };
-
-// class ROS_Comms : private Message_Parser{
-//     public:
-//         ROS_Comms(ros::NodeHandle &nh,int baudrate);
-//         void setpoint_callback(const open_motor_msgs::setpoints setpoint_msg);
-//         void pid_config_callback(const open_motor_msgs::pid_config pid_vars);
-
-
-
-//     private:
-//         int _baudrate;
-//         ros::NodeHandle _nh;
-//         // open_motor_msgs::feedback feedback;
-
-//         ros::Subscriber<open_motor_msgs::setpoints> _setpoints_sub;
-//         ros::Subscriber<open_motor_msgs::pid_config> _pid_config_sub;
-//         ros::Publisher _feedback_pub;
-
-// };
 
 #endif

@@ -178,6 +178,9 @@ class Main_Window(QMainWindow):
 
         elif  self._command_type == "PID Velocity":
             self.param_stackedWidget.setCurrentIndex(3)
+
+        elif self._command_type == "Individual Motor Params":
+            self.param_stackedWidget.setCurrentIndex(4)
         
         else:
             self.param_stackedWidget.setCurrentIndex(0)
@@ -222,6 +225,22 @@ class Main_Window(QMainWindow):
             vel2 = self.pid_vel_spinBox_2.value()
             vel3 = self.pid_vel_spinBox_3.value()
             self.motors.send_vel_goal(vel0,vel1,vel2,vel3)
+
+        elif self._command_type == "Individual Motor Params":
+            mot_num = self.motorSelect_comboBox.currentText()
+            P = self.P_doubleSpinBox.value()
+            I = self.I_doubleSpinBox.value()
+            D = self.D_doubleSpinBox.value()
+            if self.fwdButton.isChecked():
+                direction = "forward"
+                self.revButton.setChecked(False)
+                print(P)
+
+            elif self.revButton.isChecked():
+                direction = "reverse"
+                self.fwdButton.setChecked(False)
+                print(direction)
+            
         
         else:
             print("No Command")           

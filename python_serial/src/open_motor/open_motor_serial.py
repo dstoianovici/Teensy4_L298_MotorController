@@ -56,6 +56,36 @@ class open_motor:
 
         self.ser.write(msg)
 
+    #Send same PID Vars for velocity to all motors
+    def send_pid_vars_vel_all(self, P, I, D):
+        self.msg_data["command"] = "pid_vars_vel_all"
+        self.msg_data["P"] = P
+        self.msg_data["I"] = I
+        self.msg_data["D"] = D
+        msg = json.dumps(self.msg_data).encode("ascii")
+        self.ser.write(msg)
+    
+    def send_pid_vars_pos_all(self, P, I, D):
+        self.msg_data["command"] = "pid_vars_pos_all"
+        self.msg_data["P"] = P
+        self.msg_data["I"] = I
+        self.msg_data["D"] = D
+        msg = json.dumps(self.msg_data).encode("ascii")
+        self.ser.write(msg)
+
+    def send_pid_vars_solo_vel(self, mot_num, P, I, D):
+        self.msg_data["command"] = "pid_vars_solo_vel"
+        self.msg_data["mot_num"] = mot_num
+        self.msg_data["P"] = P
+        self.msg_data["I"] = I
+        self.msg_data["D"] = D
+    
+    def send_pid_vars_solo_pos(self, mot_num, P, I, D):
+        self.msg_data["command"] = "pid_vars_solo_pos"
+        self.msg_data["mot_num"] = mot_num
+        self.msg_data["P"] = P
+        self.msg_data["I"] = I
+        self.msg_data["D"] = D
 
     def get_response(self):
         self.ser.flushInput()
