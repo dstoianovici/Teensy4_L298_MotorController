@@ -204,7 +204,6 @@ void Motor::assignSetpoint_vel(float setpoint){
     _setpoint_vel = setpoint;
 }
 
-
 void Motor::pid_position_setpoint(){
 _currentTime = millis();
   int position = read_enc();
@@ -232,7 +231,6 @@ _currentTime = millis();
     drive_motor(0);
   }
 }
-
 
 float Motor::pid_velocity_setpoint(){
   _currentTime = millis();
@@ -271,7 +269,6 @@ void Motor::setDirection(bool direction){
     if(direction == true) _direction = 1;
     else if(direction == false) _direction = -1;
 }
-
 
 
 
@@ -362,7 +359,6 @@ void MotorController::updatePID_vel(){
     }
 }
 
-
 int MotorController::numMotors(){
     return motors.size();
 }
@@ -410,6 +406,14 @@ void MotorController::parse_data(){
         case PID_VARS_VEL_ALL:
             assignPIDvars_all_vel(_data.kP_vel[0],_data.kP_vel[0],_data.kD_vel[0]);
             break;
+
+        case PID_VARS_SOLO_POS:
+            motors[_data.solo_motor].setPID_vars_pos(_data.kP_pos[_data.solo_motor],_data.kI_pos[_data.solo_motor],_data.kD_pos[_data.solo_motor]);
+            break;
+
+        case PID_VARS_SOLO_VEL:
+            motors[_data.solo_motor].setPID_vars_vel(_data.kP_vel[_data.solo_motor],_data.kI_vel[_data.solo_motor],_data.kD_vel[_data.solo_motor]);
+            break;
     }
 }
 
@@ -440,12 +444,6 @@ void MotorController::prepare_feedback_data(){
 // }
 
 
-
-
-
-
-
-
 /////////////////Communicators///////////////////////////
 Serial_Comms::Serial_Comms(int baudrate, float timeout){
     _baudrate = baudrate;
@@ -456,7 +454,6 @@ void Serial_Comms::init(){
     Serial.begin(_baudrate);
     Serial.setTimeout(_timeout);
 }
-
 
 void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
     if (Serial.available() > 0){
@@ -520,6 +517,7 @@ void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
         if(data.rx_json["command"] == "pid_vars_solo_vel"){
             data.command = PID_VARS_SOLO_VEL;
             int mot_num = data.rx_json["mot_num"];
+            data.solo_motor = mot_num;
             data.kP_vel[mot_num] = data.rx_json["P"];
             data.kI_vel[mot_num] = data.rx_json["I"];
             data.kD_vel[mot_num] = data.rx_json["D"];

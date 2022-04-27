@@ -8,12 +8,12 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/Teensy/include",
-                "/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/Teensy/src",
-                "/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/Teensy/lib/Teensy4_L298n_MotorController",
+                "/home/stoianovici/MechatronicDesign/open_motor/Teensy/include",
+                "/home/stoianovici/MechatronicDesign/open_motor/Teensy/src",
+                "/home/stoianovici/MechatronicDesign/open_motor/Teensy/lib/Teensy4_L298n_MotorController",
                 "/home/stoianovici/.platformio/packages/framework-arduinoteensy/libraries/Encoder",
                 "/home/stoianovici/.platformio/packages/framework-arduinoteensy/libraries/Encoder/utility",
-                "/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/Teensy/.pio/libdeps/teensy40/ArduinoJson/src",
+                "/home/stoianovici/MechatronicDesign/open_motor/Teensy/.pio/libdeps/teensy40/ArduinoJson/src",
                 "/home/stoianovici/.platformio/packages/framework-arduinoteensy/cores/teensy4",
                 "/home/stoianovici/MechatronicDesign/Teensy4_L298_MotorController/Teensy/lib/ros_lib",
                 "/home/stoianovici/.platformio/lib/ros_lib",

@@ -54,6 +54,7 @@ class Motor{
         void setPID_vars_vel(float kP, float kI, float kD);
 
 
+
         void update_PID_Pos(int goal);
         float update_PID_Vel(float setpoint);
         void setPIDUpdateRate(float millis);
@@ -132,7 +133,9 @@ class Message_Parser{
             float goal_velocity[4] = {0,0,0,0};
             float velocity_feedback[4];
 
-            int goal_pwm[4] = {0,0,0,0};             
+            int goal_pwm[4] = {0,0,0,0};
+
+            int solo_motor;             
         };
 };
 
