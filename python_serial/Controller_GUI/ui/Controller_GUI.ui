@@ -1471,6 +1471,11 @@
       <string>Port</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>/dev/open_motor</string>
+     </property>
+    </item>
    </widget>
    <widget class="QComboBox" name="baud_comboBox">
     <property name="geometry">

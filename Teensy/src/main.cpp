@@ -64,10 +64,27 @@ void setup() {
   for(std::size_t i = 0; i < _motors.size(); i++){
           _motors[i]->init_motor();
           _motors[i]->enable_motor();
-          _motors[i]->setPID_vars_pos(1.0,0.00,0.00);
-          _motors[i]->setPID_vars_vel(0.5,0.00,0.00);
-          _motors[i]->set_Ticks_Per_Rotation(COUNT_PER_ROT);
+          // _motors[i]->setPID_vars_pos(1.0,0.00,0.00);
+          // _motors[i]->setPID_vars_vel(0.5,0.00,0.00);
+          // _motors[i]->set_Ticks_Per_Rotation(COUNT_PER_ROT);
   }
+
+  mot0.setPID_vars_pos(1.0,0.0,0.0);
+  mot0.setPID_vars_vel(0.5,0.0,0.0);
+  mot0.set_Ticks_Per_Rotation(COUNT_PER_ROT);
+
+  mot1.setPID_vars_pos(1.0,0.0,0.0);
+  mot1.setPID_vars_vel(0.5,0.0,0.0);
+  mot1.set_Ticks_Per_Rotation(COUNT_PER_ROT);
+
+  mot2.setPID_vars_pos(1.0,0.0,0.0);
+  mot2.setPID_vars_vel(0.5,0.0,0.0);
+  mot2.set_Ticks_Per_Rotation(COUNT_PER_ROT);
+
+  mot3.setPID_vars_pos(1.0,0.0,0.0);
+  mot3.setPID_vars_vel(0.5,0.0,0.0);
+  mot3.set_Ticks_Per_Rotation(COUNT_PER_ROT);
+
 }
 
 void loop() {
@@ -124,13 +141,13 @@ void loop() {
       //   comm_data.command = comm_data.command_old;
       //   break;
       
-      case PID_VARS_SOLO_VEL:
-        _motors[comm_data.solo_motor]->setPID_vars_vel(
-          comm_data.kP_vel[comm_data.solo_motor],
-          comm_data.kI_vel[comm_data.solo_motor],
-          comm_data.kD_vel[comm_data.solo_motor]);
-        comm_data.command = comm_data.command_old;
-        break;
+      // case PID_VARS_SOLO_VEL:
+      //   _motors[comm_data.solo_motor]->setPID_vars_vel(
+      //     comm_data.kP_vel[comm_data.solo_motor],
+      //     comm_data.kI_vel[comm_data.solo_motor],
+      //     comm_data.kD_vel[comm_data.solo_motor]);
+      //   comm_data.command = comm_data.command_old;
+      //   break;
       
       // case SET_GEAR_RATIO:
       //   _motors[comm_data.solo_motor]->set_Ticks_Per_Rotation(comm_data.ticks_per_rotation);
