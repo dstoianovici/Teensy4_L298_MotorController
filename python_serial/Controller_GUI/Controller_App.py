@@ -104,6 +104,7 @@ class Main_Window(QMainWindow):
         self.portConnect_Button.clicked.connect(self.serial_connect)
         self.sendCommand_Button.clicked.connect(self.send_command)
         self.stop_Button.clicked.connect(self.stop_motors_command)
+        self.send_motor_params_button.clicked.connect(self.send_motor_params)
 
     def find_connected_ports(self):
         ports = []
@@ -227,26 +228,43 @@ class Main_Window(QMainWindow):
             self.motors.send_vel_goal(vel0,vel1,vel2,vel3)
 
         elif self._command_type == "Individual Motor Params":
-            mot_num = self.motorSelect_comboBox.currentText()
-            P = self.P_doubleSpinBox.value()
-            I = self.I_doubleSpinBox.value()
-            D = self.D_doubleSpinBox.value()
-            if self.fwdButton.isChecked():
-                direction = "forward"
-                self.revButton.setChecked(False)
-                print(P)
-
-            elif self.revButton.isChecked():
-                direction = "reverse"
-                self.fwdButton.setChecked(False)
-                print(direction)
-            
+            goal_pos = [0,0,0,0]
+            goal_vel = [0,0,0,0]
+           
         
         else:
             print("No Command")           
         
     def stop_motors_command(self):
         self.motors.send_pwm_goal(0,0,0,0)
+
+    def send_motor_params(self):
+        mot_num = self.motorSelect_comboBox.currentIndex() - 1
+        if(mot_num == -1):
+            print("Please select Motor Number")
+            return
+
+        P = self.P_doubleSpinBox.value()
+        I = self.I_doubleSpinBox.value()
+        D = self.D_doubleSpinBox.value()
+
+        if self.fwdButton.isChecked():
+            direction = True
+            self.revButton.setChecked(False)
+            print("Forward")
+            self.motors.set_motor_direction(mot_num,direction)
+
+        elif self.revButton.isChecked():
+            direction = False
+            self.fwdButton.setChecked(False)
+            print("Reverse")
+            self.motors.set_motor_direction(mot_num,direction)
+        
+        # if self.pid_type_select_comboBox.currentText() == "Pos PID":
+        #     self.motors.send_pid_vars_solo_pos(mot_num,P,I,D)
+        
+        # elif self.pid_type_select_comboBox.currentText() == "Vel PID":
+        #     self.motors.send_pid_vars_solo_vel(mot_num,P,I,D)
 
         
 if __name__ == "__main__":

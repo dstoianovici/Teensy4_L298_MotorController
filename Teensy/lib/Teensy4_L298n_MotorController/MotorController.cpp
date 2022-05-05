@@ -14,6 +14,16 @@ Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ti
     _previousTimeUpdate = 0;
 }
 
+Motor::Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB) : encoder(encA,encB){
+    _EN = EN;
+    _PWM1 = PWM1;
+    _PWM2 = PWM2;
+    _SENSE = SENSE;
+
+    _enc_count = 0;
+    _previousTimeUpdate = 0;
+}
+
 void Motor::init_motor(){
     pinMode(_EN,OUTPUT);
     pinMode(_PWM1,OUTPUT);
@@ -48,7 +58,7 @@ void Motor::drive_motor_setpoint(){
 }
 
 int Motor::read_enc(){
-    _enc_count = encoder.read() * _direction;
+    _enc_count = encoder.read();
     return _enc_count;
 }
 
@@ -96,10 +106,10 @@ int Motor::pid_position(int setpoint){
   float output = 0.0;
 
   if(abs(_error) > 0.0){
-    _cumError += _error*_elapsedTime;
+    _cumulativeError += _error*_elapsedTime;
     _rateError = (_error-_lastError)/_elapsedTime;
 
-    output = _kP_pos*_error + _kI_pos*_cumError + _kD_pos*_rateError;
+    output = _kP_pos*_error + _kI_pos*_cumulativeError + _kD_pos*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -134,18 +144,17 @@ float Motor::pid_velocity(float setpoint){
   float vel = getVelocity();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
   _error = setpoint - vel;
-  if(setpoint != _setpoint_vel_old) _cumError = 0;
-
+  if(setpoint != _setpoint_vel_old) _cumulativeError = 0;
 
   float output = 0.0;
 
   if(setpoint == 0) drive_motor(0);
 
   else if(abs(_error) > 0.0){
-    _cumError += _error*_elapsedTime;
+    _cumulativeError += _error*_elapsedTime;
     _rateError = (_error-_lastError);
 
-    output = _kP_vel*_error + _kI_vel*_cumError + _kD_vel*_rateError;
+    output = _kP_vel*_error + _kI_vel*_cumulativeError + _kD_vel*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -156,8 +165,7 @@ float Motor::pid_velocity(float setpoint){
     _setpoint_vel_old = setpoint;
   }
 
-  else drive_motor(0);
-
+  //else drive_motor(0);
 
   return vel;
 }
@@ -214,10 +222,10 @@ _currentTime = millis();
   float output = 0.0;
 
   if(abs(_error) > 0.0){
-    _cumError += _error*_elapsedTime;
+    _cumulativeError += _error*_elapsedTime;
     _rateError = (_error-_lastError)/_elapsedTime;
 
-    output = _kP_pos*_error + _kI_pos*_cumError + _kD_pos*_rateError;
+    output = _kP_pos*_error + _kI_pos*_cumulativeError + _kD_pos*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -237,7 +245,7 @@ float Motor::pid_velocity_setpoint(){
   float vel = getVelocity();
   _elapsedTime = (_currentTime - _previousTime)/1000.0;
   _error = _setpoint_vel - vel;
-  if(_setpoint_vel != _setpoint_vel_old) _cumError = 0;
+  if(_setpoint_vel != _setpoint_vel_old) _cumulativeError = 0;
 
 
   float output = 0.0;
@@ -245,10 +253,10 @@ float Motor::pid_velocity_setpoint(){
   if(_setpoint_vel == 0) drive_motor(0);
 
   else if(abs(_error) > 0.0){
-    _cumError += _error*_elapsedTime;
+    _cumulativeError += _error*_elapsedTime;
     _rateError = (_error-_lastError);
 
-    output = _kP_vel*_error + _kI_vel*_cumError + _kD_vel*_rateError;
+    output = _kP_vel*_error + _kI_vel*_cumulativeError + _kD_vel*_rateError;
     
     if(output > 255.0) output = 255.0;
 
@@ -270,178 +278,10 @@ void Motor::setDirection(bool direction){
     else if(direction == false) _direction = -1;
 }
 
-
-
-///////////////////Motor Controller///////////////////
-MotorController::MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3){
-            addMotor(mot0);
-            addMotor(mot1);
-            addMotor(mot2);
-            addMotor(mot3);
+void Motor::set_Ticks_Per_Rotation(float ticks_per_rotation){
+    _ticks_per_rot = ticks_per_rotation;
 }
 
-size_t MotorController::addMotor(Motor &motor){
-    motors.push_back(motor);
-    return motors.size();
-}
-
-void MotorController::initAllMotors(){
-     for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].init_motor();
-    }
-}
-
-void MotorController::enableAllMotors(){
-     for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].enable_motor();
-    }
-}
-
-void MotorController::disableAllMotors(){
-     for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].disable_motor();
-    }
-}
-
-void MotorController::run_motor(int motor_num, int pwm){
-    motors[motor_num].drive_motor(pwm);
-}
-
-void MotorController::run_motors_setpoint_pwm(){
-    for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].drive_motor_setpoint();
-    }
-}
-
-void MotorController::run_pid_pos_all(){
-    for(uint8_t i =0; i< numMotors(); i++){
-        motors[i].pid_position_setpoint();
-    }
-}
-
-void MotorController::run_pid_vel_all(){
-    for(uint8_t i = 0; i < numMotors(); i++){
-        motors[i].pid_velocity_setpoint();
-    }
-}
-
-void MotorController::assignSetpoints_pwm(float setpoints[4]){
-    for(uint8_t i = 0; i<motors.size(); i++){
-        motors[i].assignSetpoint_pwm(setpoints[i]);
-    }
-}
-
-void MotorController::assignSetpoints_vel(float setpoints[4]){
-    for(uint8_t i = 0; i<numMotors(); i++){
-        motors[i].assignSetpoint_vel(setpoints[i]);
-    }
-}
-
-void MotorController::assignSetpoints_pos(int setpoints[4]){
-    for(uint8_t i = 0; i<numMotors(); i++){
-        motors[i].assignSetpoint_pos(setpoints[i]);
-    }
-}
-
-void MotorController::assignPIDupdate_all(float freq){
-    _pid_update_freq = freq;
-}
-
-void MotorController::updatePID_pos(){
-    if(millis()-_last_update_time >= _pid_update_freq){
-        run_pid_pos_all();
-    }
-}
-
-void MotorController::updatePID_vel(){
-    if(millis()-_last_update_time >= _pid_update_freq){
-        run_pid_vel_all();
-    }
-}
-
-int MotorController::numMotors(){
-    return motors.size();
-}
-
-void MotorController::assignPIDvars_all_pos(float kP, float kI, float kD){
-    for(uint8_t i = 0; i < numMotors(); i++){
-        motors[i].setPID_vars_pos(kP,kI,kD);
-    }
-}
-
-void MotorController::assignPIDvars_all_vel(float kP, float kI, float kD){
-    for(uint8_t i = 0; i < numMotors(); i++){
-        motors[i].setPID_vars_vel(kP,kI,kD);
-    }
-}
-
-void MotorController::parse_data(){
-    switch(_data.command){
-
-        case NONE:
-            break;
-
-        case PWM_DIRECT:
-            for(uint8_t i = 0; i < motors.size(); i++){
-                motors[i].assignSetpoint_pwm(_data.goal_pwm[i]);
-            }
-            break;
-
-        case POS_PID:
-            for(uint8_t i = 0; i < motors.size(); i++){
-                motors[i].assignSetpoint_pos(_data.goal_position[i]);
-            }
-            break;
-        
-        case VEL_PID:
-            for(uint8_t i = 0; i < motors.size(); i++){
-                motors[i].assignSetpoint_vel(_data.goal_velocity[i]);
-            }
-            break;
-        
-        case PID_VARS_POS_ALL:
-            assignPIDvars_all_pos(_data.kP_pos[0],_data.kP_pos[0],_data.kD_pos[0]);
-            break;
-        
-        case PID_VARS_VEL_ALL:
-            assignPIDvars_all_vel(_data.kP_vel[0],_data.kP_vel[0],_data.kD_vel[0]);
-            break;
-
-        case PID_VARS_SOLO_POS:
-            motors[_data.solo_motor].setPID_vars_pos(_data.kP_pos[_data.solo_motor],_data.kI_pos[_data.solo_motor],_data.kD_pos[_data.solo_motor]);
-            break;
-
-        case PID_VARS_SOLO_VEL:
-            motors[_data.solo_motor].setPID_vars_vel(_data.kP_vel[_data.solo_motor],_data.kI_vel[_data.solo_motor],_data.kD_vel[_data.solo_motor]);
-            break;
-    }
-}
-
-void MotorController::prepare_feedback_data(){
-    for(uint8_t i = 0;i<motors.size();i++){
-        _data.pos_feedback[i] = motors[i].read_enc();
-        _data.velocity_feedback[i] = motors[i].getVelocity();
-    }
-}
-
-// void MotorController::run_controller(){
-//      switch(_data.command){
-//         case NONE:
-//             break;
-
-//         case PWM_DIRECT:
-//             run_motors_setpoint_pwm();
-//             break;
-
-//         case POS_PID:
-//             updatePID_pos();
-//             break;
-        
-//         case VEL_PID:
-//             updatePID_vel();
-//             break;
-//     }
-// }
 
 
 /////////////////Communicators///////////////////////////
@@ -457,6 +297,8 @@ void Serial_Comms::init(){
 
 void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
     if (Serial.available() > 0){
+
+        data.command_old = data.command;
 
         data.rx_str = Serial.readStringUntil('\n');
 
@@ -507,20 +349,42 @@ void Serial_Comms::check_for_data(Message_Parser::Comm_Data& data){
         }
 
         if(data.rx_json["command"] == "pid_vars_solo_pos"){
+            if(data.rx_json["mot_num"] == -1) return; //Invalid motor num
             data.command = PID_VARS_SOLO_POS;
             int mot_num = data.rx_json["mot_num"];
+            data.solo_motor = mot_num;
             data.kP_pos[mot_num] = data.rx_json["P"];
             data.kI_pos[mot_num] = data.rx_json["I"];
             data.kD_pos[mot_num] = data.rx_json["D"];
         }
 
         if(data.rx_json["command"] == "pid_vars_solo_vel"){
+            if(data.rx_json["mot_num"] == -1) return; //Invalid motor num
             data.command = PID_VARS_SOLO_VEL;
             int mot_num = data.rx_json["mot_num"];
             data.solo_motor = mot_num;
             data.kP_vel[mot_num] = data.rx_json["P"];
             data.kI_vel[mot_num] = data.rx_json["I"];
             data.kD_vel[mot_num] = data.rx_json["D"];
+        }
+
+        if(data.rx_json["command"] == "set_dir"){
+            if(data.rx_json["mot_num"] == -1) return; //Invalid motor num
+            data.command = SET_DIR;
+            data.solo_motor = data.rx_json["mot_num"];
+            data.direction = data.rx_json["dir"];
+        }
+
+        if(data.rx_json["command"] == "set_tpr"){
+            if(data.rx_json["mot_num"] == -1) return; //Invalid motor num
+            data.command = SET_GEAR_RATIO;
+            data.solo_motor = data.rx_json["mot_num"];
+            data.ticks_per_rotation = data.rx_json["tpr"];
+        }
+
+        if(data.rx_json["command"] == "set_tpr_all"){
+            data.command = SET_GEAR_RATIO_ALL;
+            data.ticks_per_rotation = data.rx_json["tpr"];
         }
 
        return;

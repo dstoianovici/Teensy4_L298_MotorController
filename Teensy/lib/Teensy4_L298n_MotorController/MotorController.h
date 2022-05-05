@@ -18,12 +18,19 @@ enum Command{
     PID_VARS_POS_ALL,
     PID_VARS_VEL_ALL,
     PID_VARS_SOLO_POS,
-    PID_VARS_SOLO_VEL
+    PID_VARS_SOLO_VEL,
+    SET_DIR,
+    SET_GEAR_RATIO,
+    SET_GEAR_RATIO_ALL
 };
 
 class Motor{
     public:
+        //Constructors
         Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB, float ticks_per_rotation);
+        Motor(int EN, int PWM1, int PWM2, int SENSE, int encA, int encB);
+
+        //Methods
         void init_motor();
         void drive_motor(int pwm_duty_cycle);
         void drive_motor_setpoint();
@@ -34,35 +41,24 @@ class Motor{
         void assignSetpoint_pwm(int setpoint);
         void assignSetpoint_pos(int setpoint);
         void assignSetpoint_vel(float setpoint);
-
         int getSetpoint_pwm();
         int getSetpoint_pos();
         float getSetpoint_vel();
-        
         void getSetpoint_ROS();
-
         float getVelocity();
-
-
         int pid_position(int setpoint);
         float pid_velocity(float setpoint);
-
         void pid_position_setpoint();
         float pid_velocity_setpoint();
-
         void setPID_vars_pos(float kP, float kI, float kD);
         void setPID_vars_vel(float kP, float kI, float kD);
-
-
-
         void update_PID_Pos(int goal);
         float update_PID_Vel(float setpoint);
         void setPIDUpdateRate(float millis);
-
         void update_PID_Pos_setpoint(); //uses internal setpoint
         void update_PID_Vel_setpoint(); //Uses internal setpoint
-
         void setDirection(bool direction);
+        void set_Ticks_Per_Rotation(float ticks_per_rotation);
 
     private:
 
@@ -96,7 +92,7 @@ class Motor{
 
 
         //PID Vars
-        volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumError, _rateError, _lastError;
+        volatile float _currentTime, _previousTime, _elapsedTime, _error, _cumulativeError, _rateError, _lastError;
         float _kP_pos, _kI_pos, _kD_pos;
         float _kP_vel, _kI_vel, _kD_vel;
 
@@ -115,6 +111,7 @@ class Message_Parser{
     public:
         struct Comm_Data{
             Command command = NONE;
+            Command command_old = NONE;
 
             String rx_str;
             StaticJsonDocument<1024> rx_json;
@@ -135,48 +132,11 @@ class Message_Parser{
 
             int goal_pwm[4] = {0,0,0,0};
 
-            int solo_motor;             
+            int solo_motor;
+            bool direction;       
+            float ticks_per_rotation;     
         };
 };
-
-class MotorController : private Message_Parser {
-    public:
-        MotorController(Motor &mot0, Motor &mot1, Motor &mot2, Motor &mot3);
-        size_t addMotor(Motor &motor); //Adds motor to motors vector returns size of motors vector
-        void initAllMotors();
-        void enableAllMotors();
-        void disableAllMotors();
-        void run_motor(int motor_num, int pwm); //runs a specfic motor in the motors array at given pwm
-        void run_motors_setpoint_pwm(); //Run all motors at given PWM setpoints
-        void run_pid_pos_all();
-        void run_pid_vel_all(); //uses internal setpoint update for velocity goals on motors
-
-        void assignSetpoints_pwm(float setpoints[4]);
-        void assignSetpoints_vel(float setpoints[4]);
-        void assignSetpoints_pos(int setpoints[4]);
-
-        void updatePID_pos();
-        void updatePID_vel();
-
-        int numMotors();
-        void assignPIDvars_all_pos(float kP, float kI, float kD);
-        void assignPIDvars_all_vel(float kP, float kI, float kD);
-        void assignPIDupdate_all(float freq);
-        void parse_data();
-        void prepare_feedback_data();
-        void run_controller();
-
-
-
-
-    private:
-        int motor_count = 0;
-        std::vector<Motor> motors;
-        Message_Parser::Comm_Data _data;
-        volatile float _pid_update_freq;
-        float _last_update_time;
-};
-
 
 
 class Serial_Comms : private Message_Parser{
