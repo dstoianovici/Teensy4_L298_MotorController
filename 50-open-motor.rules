@@ -1,6 +1,6 @@
 # UDEV Rules for open_motor motor controller board
 # to use please copy this file into /etc/udev/rules.d directory, you may need to do this as root (sudo)
 # once this is done reload the udev rules using "sudo udevadm control --reload-rules && sudo service udev restart && sudo udevadm trigger"
-# Now when referencing your serial port you can use /dev/open_motor
+# Now when referencing your serial port you can use /dev/open_motor (which will remain static even if the ACM port changes)
 
 KERNEL=="ttyACM*", ATTRS{manufacturer}=="MechDesign", ATTRS{product}=="open_motor", ATTRS{idVendor}=="16c0", MODE:="0666", SYMLINK+="open_motor"
